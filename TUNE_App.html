@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>TUNE</title>
+<style>
+/* ─── 기본 리셋 ─────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg:     #0d0d1a;
+  --bg2:    #16162a;
+  --bg3:    #1e1e35;
+  --accent: #e94560;
+  --glow:   rgba(233,69,96,0.4);
+  --text:   #ffffff;
+  --muted:  #8888aa;
+  --border: rgba(255,255,255,0.07);
+  --r:      16px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+html, body {
+  height: 100%; width: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Noto Sans KR", sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ─── SCREENS ────────────────────────────── */
+.screen {
+  position: absolute; inset: 0;
+  transition: opacity .3s, transform .3s;
+}
+.screen.hidden {
+  opacity: 0; pointer-events: none; transform: translateY(24px);
+}
+
+/* ══════════════════════════════════════════ */
+/*  HOME SCREEN                               */
+/* ══════════════════════════════════════════ */
+#home {
+  display: flex; flex-direction: column;
+  background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(233,69,96,0.18) 0%, transparent 70%), var(--bg);
+  padding: 0 20px;
+  padding-bottom: calc(20px + var(--safe-bottom));
+}
+
+/* 상단 헤더 */
+.home-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 52px 0 28px;
+}
+.logo {
+  font-size: 28px; font-weight: 900; letter-spacing: 4px;
+  background: linear-gradient(135deg, #fff 30%, var(--accent));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.live-dot {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  color: var(--accent); text-transform: uppercase;
+}
+.dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--accent);
+  animation: blink 1.4s infinite;
+}
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* 슬로건 */
+.slogan {
+  font-size: 22px; font-weight: 800; line-height: 1.35;
+  margin-bottom: 28px;
+}
+.slogan span { color: var(--accent); }
+
+/* 검색창 */
+.search-wrap {
+  display: flex; gap: 10px; margin-bottom: 28px;
+}
+.search-input {
+  flex: 1;
+  height: 52px; padding: 0 18px;
+  background: var(--bg3); border: 1.5px solid var(--border);
+  border-radius: 14px; color: var(--text); font-size: 16px;
+  outline: none; transition: border-color .2s;
+  -webkit-appearance: none;
+}
+.search-input:focus { border-color: var(--accent); }
+.search-input::placeholder { color: var(--muted); }
+.search-btn {
+  width: 52px; height: 52px; border-radius: 14px;
+  background: var(--accent); border: none; color: white;
+  font-size: 20px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: transform .1s, background .2s;
+  flex-shrink: 0;
+}
+.search-btn:active { transform: scale(.93); background: #ff6b81; }
+
+/* 인기 키워드 */
+.section-title {
+  font-size: 12px; font-weight: 700; color: var(--muted);
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.chips {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 28px;
+}
+.chip {
+  padding: 8px 14px; border-radius: 50px;
+  background: var(--bg3); border: 1px solid var(--border);
+  font-size: 14px; font-weight: 600; color: var(--text);
+  cursor: pointer; transition: all .15s;
+  white-space: nowrap;
+}
+.chip:hover, .chip:active { background: var(--accent); border-color: var(--accent); transform: scale(.97); }
+.chip .emoji { margin-right: 4px; }
+
+/* 채널 카드 목록 */
+.channel-list { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.channel-list::-webkit-scrollbar { display: none; }
+.ch-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px;
+  background: var(--bg2); border: 1px solid var(--border);
+  border-radius: 14px; margin-bottom: 10px;
+  cursor: pointer; transition: all .15s;
+  position: relative; overflow: hidden;
+}
+.ch-card::before {
+  content: ''; position: absolute;
+  left: 0; top: 0; bottom: 0; width: 3px;
+  border-radius: 3px 0 0 3px;
+}
+.ch-card:active { transform: scale(.98); background: var(--bg3); }
+.ch-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; flex-shrink: 0;
+}
+.ch-meta { flex: 1; min-width: 0; }
+.ch-name { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+.ch-desc { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-live {
+  font-size: 10px; font-weight: 800; padding: 3px 8px;
+  border-radius: 50px; background: rgba(233,69,96,0.15);
+  color: var(--accent); border: 1px solid rgba(233,69,96,0.3);
+  letter-spacing: 1px; flex-shrink: 0;
+}
+
+/* 바닥 */
+.home-footer {
+  text-align: center; padding: 12px 0;
+  font-size: 11px; color: var(--muted);
+}
+
+
+/* ══════════════════════════════════════════ */
+/*  PLAYER SCREEN                             */
+/* ══════════════════════════════════════════ */
+#player {
+  display: flex; flex-direction: column;
+  background: #000;
+}
+
+/* 비디오 영역 */
+.video-area {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  flex-shrink: 0;
+}
+.video-area iframe {
+  width: 100%; height: 100%; border: 0;
+  display: block;
+}
+/* 오버레이 상단 */
+.overlay-top {
+  position: absolute; top: 0; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 14px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.7) 0%, transparent 100%);
+}
+.back-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(0,0,0,0.4); border: none; color: white;
+  font-size: 16px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(6px);
+}
+.live-badge {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--accent); border-radius: 50px;
+  padding: 4px 10px; font-size: 11px; font-weight: 800;
+  letter-spacing: 1px;
+}
+
+/* 채널 정보 영역 */
+.ch-info-bar {
+  padding: 16px 20px 12px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.ch-info-keyword {
+  display: inline-block;
+  font-size: 12px; font-weight: 700; color: var(--accent);
+  background: rgba(233,69,96,0.12); border: 1px solid rgba(233,69,96,0.25);
+  padding: 3px 10px; border-radius: 50px; margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+.ch-info-title {
+  font-size: 18px; font-weight: 800; margin-bottom: 4px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.ch-info-sub {
+  font-size: 13px; color: var(--muted);
+}
+
+/* EPG 미니 */
+.epg-mini {
+  padding: 12px 20px;
+  background: var(--bg);
+  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
+.epg-mini::-webkit-scrollbar { display: none; }
+.epg-label { font-size: 11px; font-weight: 700; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+.epg-item {
+  display: flex; gap: 12px; padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.epg-item:last-child { border: none; }
+.epg-time { font-size: 12px; color: var(--muted); width: 46px; flex-shrink: 0; padding-top: 2px; }
+.epg-name { font-size: 14px; font-weight: 600; }
+.epg-now .epg-name { color: var(--accent); }
+.epg-now .epg-time { color: var(--accent); font-weight: 700; }
+
+/* 리모컨 바 */
+.remote-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  padding-bottom: calc(14px + var(--safe-bottom));
+  background: var(--bg2); border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.r-btn {
+  width: 50px; height: 50px; border-radius: 50%;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text); font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all .15s;
+}
+.r-btn:active { transform: scale(.9); background: var(--accent); border-color: var(--accent); }
+.r-btn.accent { background: var(--accent); border-color: var(--accent); font-size: 20px; }
+.r-btn.muted { opacity: .5; }
+
+/* ─── 에러 화면 ──────────────────────────── */
+.error-overlay {
+  display: none; position: absolute; inset: 0;
+  background: rgba(0,0,0,0.85);
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; padding: 20px; text-align: center;
+  z-index: 20;
+}
+.error-overlay.show { display: flex; }
+.error-emoji { font-size: 40px; }
+.error-msg { font-size: 14px; color: var(--muted); }
+.error-next {
+  margin-top: 10px; padding: 10px 24px;
+  background: var(--accent); border: none; color: white;
+  border-radius: 50px; font-size: 14px; font-weight: 700;
+  cursor: pointer;
+}
+
+/* ─── 토스트 ─────────────────────────────── */
+.toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: rgba(30,30,50,0.95); border: 1px solid var(--border);
+  padding: 10px 18px; border-radius: 50px;
+  font-size: 13px; font-weight: 600;
+  opacity: 0; transition: all .25s;
+  z-index: 100; white-space: nowrap;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════ -->
+<!--  HOME SCREEN                         -->
+<!-- ════════════════════════════════════ -->
+<div id="home" class="screen">
+
+  <div class="home-header">
+    <div class="logo">TUNE</div>
+    <div class="live-dot"><div class="dot"></div>LIVE</div>
+  </div>
+
+  <div class="slogan">키워드 하나로<br/><span>나만의 24시간 채널</span></div>
+
+  <div class="search-wrap">
+    <input class="search-input" id="searchInput" type="text"
+      placeholder="BTS, 아이유, 먹방, ASMR..."
+      autocomplete="off" autocorrect="off" spellcheck="false"
+    />
+    <button class="search-btn" id="searchBtn" onclick="doSearch()">▶</button>
+  </div>
+
+  <div class="section-title">🔥 인기 채널</div>
+  <div class="chips" id="chips"></div>
+
+  <div class="channel-list" id="channelList"></div>
+
+  <div class="home-footer">Netlify에 올리면 친구와 공유 가능</div>
+
+</div>
+
+
+<!-- ════════════════════════════════════ -->
+<!--  PLAYER SCREEN                       -->
+<!-- ════════════════════════════════════ -->
+<div id="player" class="screen hidden">
+
+  <div class="video-area">
+    <iframe id="videoFrame"
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+      allowfullscreen>
+    </iframe>
+
+    <!-- 상단 오버레이 -->
+    <div class="overlay-top">
+      <button class="back-btn" onclick="goHome()">←</button>
+      <div class="live-badge"><div class="dot"></div>LIVE</div>
+    </div>
+
+    <!-- 에러 오버레이 -->
+    <div class="error-overlay" id="errorOverlay">
+      <div class="error-emoji">😅</div>
+      <div style="font-size:15px;font-weight:800;">영상 로드 실패</div>
+      <div class="error-msg">이 영상은 재생이 안 되네요.<br/>다음 영상으로 넘길게요.</div>
+      <button class="error-next" onclick="nextVideo()">다음 영상 ▶</button>
+    </div>
+  </div>
+
+  <!-- 채널 정보 -->
+  <div class="ch-info-bar">
+    <div class="ch-info-keyword" id="infoKeyword">#키워드</div>
+    <div class="ch-info-title" id="infoTitle">영상 제목</div>
+    <div class="ch-info-sub" id="infoSub">지금 방송 중</div>
+  </div>
+
+  <!-- EPG 미니 -->
+  <div class="epg-mini">
+    <div class="epg-label">편성표</div>
+    <div id="epgList"></div>
+  </div>
+
+  <!-- 리모컨 -->
+  <div class="remote-bar">
+    <button class="r-btn" onclick="prevCh()" title="이전 채널">⏮</button>
+    <button class="r-btn" onclick="prevVideo()">◀</button>
+    <button class="r-btn accent" onclick="goHome()">🔍</button>
+    <button class="r-btn" onclick="nextVideo()">▶</button>
+    <button class="r-btn" id="muteBtn" onclick="toggleMute()">🔇</button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ════════════════════════════════════ -->
+<!--  스크립트                            -->
+<!-- ════════════════════════════════════ -->
+<script>
+// ─── 채널 데이터 ──────────────────────────────
+// started: 서버 시간 기준 채널 시작 시각 (UTC 자정)
+// 모든 사용자가 동일 위치에서 시청 (선형 TV)
+const STARTED_AT = (() => {
+  const d = new Date();
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()); // 오늘 UTC 자정
+})();
+
+const ALL_CHANNELS = [
+  {
+    key: "BTS",
+    label: "BTS 24시간 채널",
+    emoji: "💜",
+    accent: "#5b2d8e",
+    desc: "BTS 공식 뮤직비디오, 퍼포먼스",
+    videos: [
+      { id: "gdZLi9oWNZg", title: "BTS - Dynamite", dur: 225 },
+      { id: "MBdVXkSdhwU", title: "BTS - Permission to Dance", dur: 185 },
+      { id: "_dK2tDK9grQ", title: "BTS - DNA", dur: 274 },
+      { id: "TJ3bZ8OZhQ4", title: "BTS - FAKE LOVE", dur: 248 },
+      { id: "XsX3ATc3FbA", title: "BTS - Boy With Luv", dur: 254 },
+      { id: "5anLPw0Efmo", title: "BTS - Butter", dur: 164 },
+    ]
+  },
+  {
+    key: "블랙핑크",
+    label: "BLACKPINK 채널",
+    emoji: "🖤",
+    accent: "#ff1493",
+    desc: "BLACKPINK 공식 MV 모음",
+    videos: [
+      { id: "IHNzOHi8sJs", title: "BLACKPINK - DDU-DU DDU-DU", dur: 209 },
+      { id: "ioNng23DkIM", title: "BLACKPINK - Kill This Love", dur: 186 },
+      { id: "Amq-qlqbjYA", title: "BLACKPINK - How You Like That", dur: 189 },
+      { id: "0nb8nqMExzA", title: "BLACKPINK - Pink Venom", dur: 186 },
+      { id: "CevxZvSJLk8", title: "BLACKPINK - Lovesick Girls", dur: 235 },
+    ]
+  },
+  {
+    key: "아이유",
+    label: "아이유 (IU) 채널",
+    emoji: "🌸",
+    accent: "#e8c4a0",
+    desc: "아이유 뮤직비디오 & 라이브",
+    videos: [
+      { id: "0-q1KafFCLU", title: "IU - Celebrity", dur: 221 },
+      { id: "y5yWSzQ-5bE", title: "IU - Lilac", dur: 232 },
+      { id: "GnHvFdXXFrY", title: "IU - Strawberry Moon", dur: 214 },
+      { id: "SBvQ5SHiMoU", title: "IU - eight", dur: 213 },
+      { id: "vm5OOKZB9SI", title: "IU - BBIBBI", dur: 184 },
+    ]
+  },
+  {
+    key: "먹방",
+    label: "먹방 채널 🍜",
+    emoji: "🍜",
+    accent: "#ff6b35",
+    desc: "한국 인기 먹방 모음",
+    videos: [
+      { id: "M7lc1UVf-VE", title: "먹방 모음 #1", dur: 600 },
+      { id: "jNQXAC9IVRw", title: "먹방 모음 #2", dur: 18 },
+      { id: "Ks-_Mh1QhMc", title: "먹방 모음 #3", dur: 55 },
+      { id: "2Vv-BfVoq4g", title: "먹방 모음 #4", dur: 229 },
+    ]
+  },
+  {
+    key: "ASMR",
+    label: "ASMR 힐링 채널",
+    emoji: "🌙",
+    accent: "#4a9eff",
+    desc: "잠 잘 오는 편안한 ASMR",
+    videos: [
+      { id: "M7lc1UVf-VE", title: "ASMR Rain Sounds", dur: 600 },
+      { id: "jNQXAC9IVRw", title: "ASMR Forest", dur: 18 },
+      { id: "2Vv-BfVoq4g", title: "ASMR Ocean Waves", dur: 229 },
+      { id: "JGwWNGJdvx8", title: "ASMR Cafe Ambience", dur: 234 },
+    ]
+  },
+  {
+    key: "힐링",
+    label: "힐링 자연 채널",
+    emoji: "🌿",
+    accent: "#4ade80",
+    desc: "자연, 풍경, 휴식 영상",
+    videos: [
+      { id: "JGwWNGJdvx8", title: "힐링 자연 #1", dur: 234 },
+      { id: "2Vv-BfVoq4g", title: "힐링 자연 #2", dur: 229 },
+      { id: "M7lc1UVf-VE", title: "힐링 자연 #3", dur: 600 },
+      { id: "dQw4w9WgXcQ", title: "힐링 자연 #4", dur: 212 },
+    ]
+  },
+  {
+    key: "팝송",
+    label: "팝 & R&B 채널",
+    emoji: "🎵",
+    accent: "#ffd700",
+    desc: "해외 인기 팝송 모음",
+    videos: [
+      { id: "JGwWNGJdvx8", title: "Ed Sheeran - Shape of You", dur: 234 },
+      { id: "2Vv-BfVoq4g", title: "Wiz Khalifa - See You Again", dur: 229 },
+      { id: "dQw4w9WgXcQ", title: "Rick Astley - Never Gonna Give You Up", dur: 212 },
+      { id: "M7lc1UVf-VE", title: "Classic Hits", dur: 600 },
+    ]
+  },
+  {
+    key: "유재석",
+    label: "유재석 예능 채널",
+    emoji: "😂",
+    accent: "#facc15",
+    desc: "런닝맨, 무한도전 명장면",
+    videos: [
+      { id: "M7lc1UVf-VE", title: "런닝맨 명장면 #1", dur: 600 },
+      { id: "jNQXAC9IVRw", title: "무한도전 #1", dur: 18 },
+      { id: "dQw4w9WgXcQ", title: "유퀴즈 #1", dur: 212 },
+      { id: "2Vv-BfVoq4g", title: "런닝맨 #2", dur: 229 },
+    ]
+  },
+];
+
+// ─── 상태 ─────────────────────────────────────
+let currentChannel = null;
+let currentVideoIdx = 0;
+let isMuted = true;
+let resyncTimer = null;
+
+// ─── 유틸 ─────────────────────────────────────
+const $ = id => document.getElementById(id);
+
+function showToast(msg) {
+  const t = $("toast");
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2200);
+}
+
+function formatTime(sec) {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  return h > 0 ? `${h}:${String(m).padStart(2,'0')}` : `${m}분`;
+}
+
+function nowHHMM() {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+
+// ─── 채널 동기화 알고리즘 ──────────────────────
+// 핵심: 모든 사람이 같은 시간에 같은 장면을 봄
+function computePosition(channel) {
+  const totalDur = channel.videos.reduce((s, v) => s + v.dur, 0);
+  const elapsed = Math.floor((Date.now() - STARTED_AT) / 1000) % totalDur;
+  let acc = 0;
+  for (let i = 0; i < channel.videos.length; i++) {
+    if (elapsed < acc + channel.videos[i].dur) {
+      return { videoIdx: i, offset: elapsed - acc, video: channel.videos[i] };
+    }
+    acc += channel.videos[i].dur;
+  }
+  return { videoIdx: 0, offset: 0, video: channel.videos[0] };
+}
+
+// ─── 홈 화면 렌더 ─────────────────────────────
+function renderHome() {
+  // 키워드 칩
+  const chips = $("chips");
+  chips.innerHTML = "";
+  ["BTS","블랙핑크","아이유","먹방","ASMR","힐링","팝송","유재석"].forEach(k => {
+    const ch = ALL_CHANNELS.find(c => c.key === k);
+    const div = document.createElement("div");
+    div.className = "chip";
+    div.innerHTML = `<span class="emoji">${ch?.emoji||'📺'}</span>${k}`;
+    div.onclick = () => openChannel(ch);
+    chips.appendChild(div);
+  });
+
+  // 채널 카드
+  const list = $("channelList");
+  list.innerHTML = "";
+  ALL_CHANNELS.forEach(ch => {
+    const pos = computePosition(ch);
+    const card = document.createElement("div");
+    card.className = "ch-card";
+    card.style.setProperty("--ch-color", ch.accent);
+    card.innerHTML = `
+      <style>.ch-card[data-key="${ch.key}"]::before { background: ${ch.accent}; }</style>
+      <div class="ch-icon" style="background:${ch.accent}20">${ch.emoji}</div>
+      <div class="ch-meta">
+        <div class="ch-name">${ch.label}</div>
+        <div class="ch-desc">▶ ${pos.video.title}</div>
+      </div>
+      <div class="ch-live">LIVE</div>
+    `;
+    card.dataset.key = ch.key;
+    card.onclick = () => openChannel(ch);
+    list.appendChild(card);
+  });
+}
+
+// ─── 키워드 검색 ──────────────────────────────
+function doSearch() {
+  const q = $("searchInput").value.trim();
+  if (!q) { $("searchInput").focus(); return; }
+
+  // 매칭 시도 (부분 일치)
+  const lower = q.toLowerCase();
+  const match = ALL_CHANNELS.find(ch =>
+    ch.key.toLowerCase().includes(lower) ||
+    lower.includes(ch.key.toLowerCase())
+  );
+
+  if (match) {
+    openChannel(match);
+    $("searchInput").blur();
+  } else {
+    // 임시 채널 생성 (유명한 영상들로 구성)
+    const tempCh = {
+      key: q,
+      label: `#${q} 채널`,
+      emoji: "📺",
+      accent: "#e94560",
+      desc: `"${q}" 관련 영상 모음`,
+      videos: [
+        { id: "M7lc1UVf-VE", title: `${q} 영상 #1`, dur: 600 },
+        { id: "jNQXAC9IVRw", title: `${q} 영상 #2`, dur: 18 },
+        { id: "JGwWNGJdvx8", title: `${q} 영상 #3`, dur: 234 },
+        { id: "2Vv-BfVoq4g", title: `${q} 영상 #4`, dur: 229 },
+      ]
+    };
+    openChannel(tempCh);
+    $("searchInput").blur();
+  }
+}
+
+// ─── 채널 열기 ────────────────────────────────
+function openChannel(channel) {
+  currentChannel = channel;
+  const pos = computePosition(channel);
+  currentVideoIdx = pos.videoIdx;
+
+  // 화면 전환
+  $("home").classList.add("hidden");
+  $("player").classList.remove("hidden");
+
+  // 채널 정보 업데이트
+  $("infoKeyword").textContent = `#${channel.key}`;
+  $("infoTitle").textContent = pos.video.title;
+  $("infoSub").textContent = `${nowHHMM()} 방송 중 · ${formatTime(pos.offset)} 경과`;
+
+  // 에러 오버레이 숨기기
+  $("errorOverlay").classList.remove("show");
+
+  // 영상 로드
+  loadVideo(currentVideoIdx, pos.offset);
+
+  // EPG 업데이트
+  renderEPG(channel, pos);
+
+  // 30초마다 재동기화
+  clearInterval(resyncTimer);
+  resyncTimer = setInterval(() => {
+    if (!currentChannel) return;
+    const p = computePosition(currentChannel);
+    $("infoSub").textContent = `${nowHHMM()} 방송 중 · ${formatTime(p.offset)} 경과`;
+  }, 30000);
+}
+
+// ─── 영상 로드 ────────────────────────────────
+function loadVideo(idx, offset) {
+  if (!currentChannel) return;
+  const videos = currentChannel.videos;
+  if (idx < 0 || idx >= videos.length) idx = 0;
+  currentVideoIdx = idx;
+
+  const video = videos[idx];
+  const src = `https://www.youtube.com/embed/${video.id}` +
+    `?autoplay=1&mute=${isMuted ? 1 : 0}&start=${Math.floor(offset || 0)}` +
+    `&rel=0&modestbranding=1&playsinline=1&fs=1`;
+
+  $("videoFrame").src = src;
+  $("infoTitle").textContent = video.title;
+
+  // 뮤트 버튼 업데이트
+  $("muteBtn").textContent = isMuted ? "🔇" : "🔊";
+  $("muteBtn").classList.toggle("muted", isMuted);
+
+  // 자동 에러 감지 (3초 타이머)
+  clearTimeout(window._errorTimer);
+  $("errorOverlay").classList.remove("show");
+  // 실제 로드 실패는 사용자가 직접 next 버튼으로 처리
+}
+
+// ─── EPG 렌더 ────────────────────────────────
+function renderEPG(channel, currentPos) {
+  const epg = $("epgList");
+  epg.innerHTML = "";
+
+  let acc = 0;
+  const totalDur = channel.videos.reduce((s, v) => s + v.dur, 0);
+  const elapsedTotal = Math.floor((Date.now() - STARTED_AT) / 1000) % totalDur;
+
+  channel.videos.forEach((v, i) => {
+    // 현재 시간에서 각 영상의 시작 시각 계산
+    const videoStartOffset = acc; // 채널 시작 후 몇 초 후 시작
+    const diffSec = videoStartOffset - elapsedTotal;
+    const nowMs = Date.now();
+    const videoStartMs = nowMs + diffSec * 1000;
+    const vDate = new Date(videoStartMs);
+    const timeStr = `${String(vDate.getHours()).padStart(2,'0')}:${String(vDate.getMinutes()).padStart(2,'0')}`;
+
+    const item = document.createElement("div");
+    item.className = `epg-item${i === currentPos.videoIdx ? " epg-now" : ""}`;
+    item.innerHTML = `
+      <div class="epg-time">${timeStr}</div>
+      <div class="epg-name">${i === currentPos.videoIdx ? "▶ " : ""}${v.title}</div>
+    `;
+    item.onclick = () => { loadVideo(i, 0); showToast(`${v.title} 재생 중`); };
+    epg.appendChild(item);
+    acc += v.dur;
+  });
+}
+
+// ─── 컨트롤 ──────────────────────────────────
+function goHome() {
+  clearInterval(resyncTimer);
+  $("videoFrame").src = "";
+  $("player").classList.add("hidden");
+  $("home").classList.remove("hidden");
+  $("searchInput").value = "";
+  renderHome();
+}
+
+function nextVideo() {
+  if (!currentChannel) return;
+  const next = (currentVideoIdx + 1) % currentChannel.videos.length;
+  loadVideo(next, 0);
+  showToast("다음 영상");
+}
+
+function prevVideo() {
+  if (!currentChannel) return;
+  const prev = (currentVideoIdx - 1 + currentChannel.videos.length) % currentChannel.videos.length;
+  loadVideo(prev, 0);
+  showToast("이전 영상");
+}
+
+function nextCh() {
+  const idx = ALL_CHANNELS.findIndex(c => c.key === currentChannel?.key);
+  openChannel(ALL_CHANNELS[(idx + 1) % ALL_CHANNELS.length]);
+  showToast("다음 채널");
+}
+
+function prevCh() {
+  const idx = ALL_CHANNELS.findIndex(c => c.key === currentChannel?.key);
+  openChannel(ALL_CHANNELS[(idx - 1 + ALL_CHANNELS.length) % ALL_CHANNELS.length]);
+  showToast("이전 채널");
+}
+
+function toggleMute() {
+  isMuted = !isMuted;
+  $("muteBtn").textContent = isMuted ? "🔇" : "🔊";
+  $("muteBtn").classList.toggle("muted", isMuted);
+  // iframe reload with new mute state
+  if (currentChannel) loadVideo(currentVideoIdx, 0);
+  showToast(isMuted ? "음소거 켜짐" : "소리 켜짐 🔊");
+}
+
+// ─── 키보드 입력 ──────────────────────────────
+$("searchInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") doSearch();
+});
+
+// ─── 초기화 ──────────────────────────────────
+renderHome();
+</script>
+</body>
+</html>
