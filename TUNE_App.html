@@ -1,980 +1,1450 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<title>TUNE · Keyword TV</title>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>TUNE</title>
 <style>
-/* ══════════════════════════════════════════════
-   VARIABLES & RESET
-══════════════════════════════════════════════ */
-*, *::before, *::after {
-  box-sizing: border-box; margin: 0; padding: 0;
-  -webkit-tap-highlight-color: transparent;
-}
+/* ─────────────────────────────────────────────
+   DESIGN TOKENS
+───────────────────────────────────────────── */
 :root {
-  --bg:       #0d0d1a;
-  --bg2:      #14142a;
-  --bg3:      #1c1c35;
-  --accent:   #e94560;
-  --accent2:  #ff6b81;
-  --text:     #ffffff;
-  --muted:    #7777aa;
-  --border:   rgba(255,255,255,0.07);
-  --r:        14px;
-  --safe-b:   env(safe-area-inset-bottom, 0px);
+  --c-bg:        #08080d;
+  --c-s0:        #0e0e16;
+  --c-s1:        #151520;
+  --c-s2:        #1d1d2c;
+  --c-s3:        #252537;
+  --c-border:    #2c2c40;
+  --c-border-s:  rgba(255,255,255,0.05);
+  --c-accent:    #ff3356;
+  --c-accent-d:  rgba(255,51,86,0.12);
+  --c-accent-g:  rgba(255,51,86,0.35);
+  --c-green:     #00d47e;
+  --c-text:      #f0f0f5;
+  --c-t2:        #9090b0;
+  --c-t3:        #55556a;
+  --r-sm:  6px;
+  --r-md:  10px;
+  --r-lg:  14px;
+  --r-xl:  20px;
+  --r-f:   9999px;
+  --safe-b: env(safe-area-inset-bottom,0px);
+  --hdr-h: 60px;
+  --ctrl-h: 64px;
 }
-html, body {
-  height: 100%; width: 100%; overflow: hidden;
-  background: var(--bg); color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Noto Sans KR", sans-serif;
-  -webkit-font-smoothing: antialiased;
-}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;width:100%;overflow:hidden;background:var(--c-bg);color:var(--c-text);
+  font-family:-apple-system,BlinkMacSystemFont,"Pretendard","Noto Sans KR",sans-serif;
+  -webkit-font-smoothing:antialiased;font-size:14px}
+button{cursor:pointer;border:none;background:none;color:inherit;font-family:inherit;font-size:inherit}
+input{font-family:inherit;font-size:inherit;color:inherit;border:none;outline:none;background:none}
+a{color:inherit;text-decoration:none}
 
-/* ══════════════════════════════════════════════
+/* ─────────────────────────────────────────────
    SCREEN SYSTEM
-══════════════════════════════════════════════ */
-.screen {
-  position: absolute; inset: 0;
-  transition: opacity .25s ease, transform .25s ease;
-  overflow: hidden;
-}
-.screen.hidden { opacity: 0; pointer-events: none; transform: translateY(16px); }
+───────────────────────────────────────────── */
+.screen{position:absolute;inset:0;transition:opacity .22s,transform .22s;overflow:hidden}
+.screen.off{opacity:0;pointer-events:none;transform:translateY(10px)}
 
-/* ══════════════════════════════════════════════
-   HOME SCREEN  (모바일 기본 / 데스크탑 반응형)
-══════════════════════════════════════════════ */
-#home {
-  display: flex; flex-direction: column;
-  background: radial-gradient(ellipse 90% 50% at 50% -5%,
-    rgba(233,69,96,.2) 0%, transparent 65%), var(--bg);
-  overflow-y: auto; -webkit-overflow-scrolling: touch;
-  padding: 0 18px calc(16px + var(--safe-b));
-}
-#home::-webkit-scrollbar { display: none; }
+/* ─────────────────────────────────────────────
+   SVG ICONS (inline, reusable via <use>)
+───────────────────────────────────────────── */
 
-.home-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 52px 0 24px;
-  position: sticky; top: 0; z-index: 10;
-  background: linear-gradient(180deg, var(--bg) 70%, transparent);
+/* ─────────────────────────────────────────────
+   ① HOME SCREEN
+───────────────────────────────────────────── */
+#sHome{
+  display:flex;flex-direction:column;
+  background:radial-gradient(ellipse 80% 55% at 50% -10%,rgba(255,51,86,.18) 0%,transparent 68%),var(--c-bg);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
 }
-.logo {
-  font-size: 26px; font-weight: 900; letter-spacing: 4px;
-  background: linear-gradient(135deg, #fff 20%, var(--accent));
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-}
-.live-pill {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 10px; font-weight: 800; letter-spacing: 2px;
-  color: var(--accent); text-transform: uppercase;
-}
-.dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); animation: blink 1.4s infinite; }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.25} }
+#sHome::-webkit-scrollbar{display:none}
 
-.slogan { font-size: 20px; font-weight: 800; line-height: 1.4; margin-bottom: 22px; }
-.slogan span { color: var(--accent); }
+.home-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:48px 24px 20px;
+  position:sticky;top:0;z-index:5;
+  background:linear-gradient(180deg,var(--c-bg) 70%,transparent);
+}
+.brand-mark{
+  font-size:24px;font-weight:900;letter-spacing:5px;
+  background:linear-gradient(130deg,#fff 30%,var(--c-accent));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.live-tag{
+  display:flex;align-items:center;gap:6px;
+  font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;
+  color:var(--c-accent);
+}
+.pulse{width:6px;height:6px;border-radius:50%;background:var(--c-accent);animation:pulse 1.6s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(1.3)}}
 
-/* 검색창 */
-.search-wrap { display: flex; gap: 10px; margin-bottom: 22px; }
-.search-input {
-  flex: 1; height: 50px; padding: 0 16px;
-  background: var(--bg3); border: 1.5px solid var(--border);
-  border-radius: var(--r); color: var(--text); font-size: 16px;
-  outline: none; transition: border-color .2s; -webkit-appearance: none;
-}
-.search-input:focus { border-color: var(--accent); }
-.search-input::placeholder { color: var(--muted); }
-.search-btn {
-  width: 50px; height: 50px; border-radius: var(--r);
-  background: var(--accent); border: none; color: white;
-  font-size: 19px; cursor: pointer; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-  transition: transform .1s;
-}
-.search-btn:active { transform: scale(.92); }
+.home-body{padding:0 24px 32px;display:flex;flex-direction:column;gap:24px}
 
-/* 칩 */
-.section-label {
-  font-size: 11px; font-weight: 700; color: var(--muted);
-  letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px;
-}
-.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
-.chip {
-  padding: 7px 13px; border-radius: 50px;
-  background: var(--bg3); border: 1px solid var(--border);
-  font-size: 13px; font-weight: 600; cursor: pointer;
-  transition: all .15s; white-space: nowrap;
-}
-.chip:active, .chip:hover { background: var(--accent); border-color: var(--accent); }
+.headline{font-size:22px;font-weight:800;line-height:1.35;color:var(--c-text)}
+.headline em{font-style:normal;color:var(--c-accent)}
 
-/* 채널 카드 — 모바일: 1열, 데스크탑: 2열 */
-#channelGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
+/* 검색 */
+.search-row{display:flex;gap:8px}
+.search-field{
+  flex:1;height:48px;padding:0 16px;
+  background:var(--c-s2);border:1.5px solid var(--c-border);
+  border-radius:var(--r-lg);font-size:15px;color:var(--c-text);
+  transition:border-color .2s;-webkit-appearance:none;
 }
-.ch-card {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px; border-radius: var(--r);
-  background: var(--bg2); border: 1px solid var(--border);
-  cursor: pointer; transition: all .15s;
-  position: relative; overflow: hidden;
+.search-field:focus{border-color:var(--c-accent)}
+.search-field::placeholder{color:var(--c-t3)}
+.search-go{
+  width:48px;height:48px;border-radius:var(--r-lg);
+  background:var(--c-accent);display:flex;align-items:center;justify-content:center;
+  transition:opacity .15s;flex-shrink:0;
 }
-.ch-card::before {
-  content: ''; position: absolute;
-  left: 0; top: 0; bottom: 0; width: 3px;
+.search-go:active{opacity:.75}
+.search-go svg{width:20px;height:20px;fill:white}
+
+/* 키워드 칩 */
+.label-xs{font-size:11px;font-weight:700;color:var(--c-t3);letter-spacing:2px;text-transform:uppercase}
+.chip-row{display:flex;flex-wrap:wrap;gap:6px}
+.kw-chip{
+  padding:7px 14px;border-radius:var(--r-f);
+  background:var(--c-s2);border:1px solid var(--c-border);
+  font-size:13px;font-weight:600;transition:all .14s;white-space:nowrap;
 }
-.ch-card:active { transform: scale(.98); background: var(--bg3); }
-.ch-icon {
-  width: 46px; height: 46px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 22px; flex-shrink: 0;
+.kw-chip:hover,.kw-chip:active{background:var(--c-accent);border-color:var(--c-accent);color:#fff}
+
+/* 채널 그리드 */
+.ch-grid{display:grid;grid-template-columns:1fr;gap:8px}
+.ch-tile{
+  display:flex;align-items:center;gap:14px;padding:14px 16px;
+  background:var(--c-s1);border:1px solid var(--c-border-s);
+  border-radius:var(--r-lg);cursor:pointer;transition:all .14s;
+  position:relative;overflow:hidden;
 }
-.ch-meta { flex: 1; min-width: 0; }
-.ch-name { font-size: 14px; font-weight: 700; margin-bottom: 3px; }
-.ch-desc { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ch-badge {
-  font-size: 9px; font-weight: 800; padding: 3px 7px;
-  border-radius: 50px; background: rgba(233,69,96,.15);
-  color: var(--accent); border: 1px solid rgba(233,69,96,.3);
-  letter-spacing: 1px; flex-shrink: 0;
+.ch-tile::after{
+  content:'';position:absolute;left:0;top:0;bottom:0;width:3px;
+  background:var(--tile-color,var(--c-accent));
+}
+.ch-tile:active{background:var(--c-s2)}
+.tile-icon{
+  width:44px;height:44px;border-radius:var(--r-md);
+  background:var(--tile-color-d,var(--c-accent-d));
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+.tile-icon svg{width:22px;height:22px}
+.tile-meta{flex:1;min-width:0}
+.tile-name{font-size:14px;font-weight:700;margin-bottom:3px}
+.tile-now{font-size:12px;color:var(--c-t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile-badge{
+  font-size:9px;font-weight:800;letter-spacing:1px;
+  padding:3px 8px;border-radius:var(--r-f);
+  background:var(--c-accent-d);color:var(--c-accent);
+  border:1px solid rgba(255,51,86,.2);flex-shrink:0;
 }
 
-/* ══════════════════════════════════════════════
-   PLAYER SCREEN
-══════════════════════════════════════════════ */
-#player {
-  display: flex; flex-direction: column;
-  background: #000;
+/* ─────────────────────────────────────────────
+   ② PLAYER SCREEN
+───────────────────────────────────────────── */
+#sPlayer{
+  display:grid;
+  grid-template-rows:var(--hdr-h) 1fr var(--ctrl-h);
+  grid-template-columns:1fr;
+  background:var(--c-bg);
 }
 
-/* 비디오 영역 */
-.video-wrap {
-  position: relative; width: 100%;
-  aspect-ratio: 16/9; background: #000; flex-shrink: 0;
+/* 플레이어 헤더 */
+.player-hdr{
+  display:flex;align-items:center;gap:12px;padding:0 16px;
+  background:var(--c-s0);border-bottom:1px solid var(--c-border-s);
+  grid-row:1;overflow:hidden;
 }
-.video-wrap iframe { width: 100%; height: 100%; border: 0; display: block; }
+.icon-btn{
+  width:36px;height:36px;border-radius:var(--r-md);display:flex;
+  align-items:center;justify-content:center;flex-shrink:0;
+  background:var(--c-s2);border:1px solid var(--c-border-s);
+  transition:all .12s;
+}
+.icon-btn:active,.icon-btn:hover{background:var(--c-s3)}
+.icon-btn svg{width:18px;height:18px;fill:var(--c-text)}
+.player-logo{
+  font-size:18px;font-weight:900;letter-spacing:4px;flex-shrink:0;
+  background:linear-gradient(130deg,#fff 30%,var(--c-accent));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+}
+.hdr-search-wrap{flex:1;display:flex;gap:8px;min-width:0}
+.hdr-search-input{
+  flex:1;height:34px;padding:0 14px;min-width:0;
+  background:var(--c-s2);border:1px solid var(--c-border);
+  border-radius:var(--r-f);font-size:13px;
+  transition:border-color .2s;-webkit-appearance:none;
+}
+.hdr-search-input:focus{border-color:var(--c-accent)}
+.hdr-search-input::placeholder{color:var(--c-t3)}
+.hdr-search-btn{
+  height:34px;padding:0 14px;border-radius:var(--r-f);
+  background:var(--c-accent);font-size:13px;font-weight:700;
+  white-space:nowrap;transition:opacity .12s;
+}
+.hdr-search-btn:active{opacity:.8}
+.hdr-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.hdr-clock{font-size:12px;font-weight:700;color:var(--c-t2);min-width:40px;text-align:right}
 
-/* 비디오 오버레이 */
-.v-overlay-top {
-  position: absolute; top: 0; left: 0; right: 0;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 12px;
-  background: linear-gradient(180deg, rgba(0,0,0,.65) 0%, transparent 100%);
-}
-.back-btn {
-  width: 34px; height: 34px; border-radius: 50%;
-  background: rgba(0,0,0,.4); border: none; color: white;
-  font-size: 15px; cursor: pointer; display: flex;
-  align-items: center; justify-content: center;
-  backdrop-filter: blur(4px);
-}
-.live-badge {
-  display: flex; align-items: center; gap: 4px;
-  background: var(--accent); border-radius: 50px;
-  padding: 4px 9px; font-size: 10px; font-weight: 800; letter-spacing: 1px;
+/* 플레이어 바디 */
+.player-body{
+  grid-row:2;display:flex;overflow:hidden;
 }
 
-/* 싱크 표시기 */
-.sync-bar {
-  position: absolute; bottom: 0; left: 0; right: 0;
-  display: flex; align-items: center; justify-content: flex-end;
-  gap: 6px; padding: 8px 12px;
-  background: linear-gradient(0deg, rgba(0,0,0,.65) 0%, transparent 100%);
-}
-.sync-indicator {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 10px; color: rgba(255,255,255,.7);
-  background: rgba(0,0,0,.3); padding: 3px 8px;
-  border-radius: 50px; backdrop-filter: blur(4px);
-}
-.sync-dot { width: 5px; height: 5px; border-radius: 50%; background: #4ade80; animation: blink .8s infinite; }
+/* 비디오 컬럼 */
+.video-col{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.video-wrap{position:relative;width:100%;aspect-ratio:16/9;background:#000;flex-shrink:0}
+.video-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0;display:block}
 
-/* 채널 정보 바 */
-.info-bar {
-  padding: 14px 18px 10px;
-  background: var(--bg); border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
+/* 동기화 오버레이 */
+.sync-overlay{
+  position:absolute;bottom:8px;right:10px;
+  display:flex;align-items:center;gap:5px;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
+  padding:4px 10px;border-radius:var(--r-f);pointer-events:none;
 }
-.info-keyword {
-  display: inline-block; font-size: 11px; font-weight: 700; color: var(--accent);
-  background: rgba(233,69,96,.12); border: 1px solid rgba(233,69,96,.25);
-  padding: 2px 9px; border-radius: 50px; margin-bottom: 6px; letter-spacing: 1px;
-}
-.info-title { font-size: 17px; font-weight: 800; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.info-sub { font-size: 12px; color: var(--muted); }
-
-/* Premium 안내 */
-.premium-bar {
-  display: flex; align-items: center; gap: 8px;
-  padding: 8px 18px;
-  background: rgba(255, 180, 0, 0.07); border-bottom: 1px solid rgba(255,180,0,.15);
-  font-size: 11px; color: rgba(255,180,0,.85); flex-shrink: 0;
-}
-.premium-bar span { opacity: .7; }
-.premium-bar a { color: #ffb400; text-decoration: none; font-weight: 700; }
-
-/* EPG */
-.epg-panel {
-  flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
-  padding: 12px 18px; background: var(--bg);
-}
-.epg-panel::-webkit-scrollbar { display: none; }
-.epg-label { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; }
-.epg-row {
-  display: flex; gap: 10px; padding: 10px 0;
-  border-bottom: 1px solid var(--border); cursor: pointer;
-  transition: background .1s;
-}
-.epg-row:last-child { border: none; }
-.epg-row:active { background: var(--bg3); }
-.epg-time { font-size: 11px; color: var(--muted); width: 42px; flex-shrink: 0; padding-top: 2px; }
-.epg-info { flex: 1; }
-.epg-title { font-size: 13px; font-weight: 600; }
-.epg-dur { font-size: 11px; color: var(--muted); margin-top: 2px; }
-.epg-row.now .epg-time, .epg-row.now .epg-title { color: var(--accent); }
-.progress-bar-wrap { height: 3px; background: var(--bg3); border-radius: 2px; margin-top: 5px; }
-.progress-bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .5s; }
-
-/* 리모컨 */
-.remote {
-  display: flex; align-items: center; justify-content: space-around;
-  padding: 12px 16px;
-  padding-bottom: calc(12px + var(--safe-b));
-  background: var(--bg2); border-top: 1px solid var(--border);
-  flex-shrink: 0;
-}
-.r-btn {
-  width: 48px; height: 48px; border-radius: 50%;
-  background: var(--bg3); border: 1px solid var(--border);
-  color: var(--text); font-size: 17px; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: all .12s;
-}
-.r-btn:active { transform: scale(.88); background: var(--accent); border-color: var(--accent); }
-.r-btn.main { background: var(--accent); border-color: var(--accent); font-size: 19px; width: 52px; height: 52px; }
-.r-btn.dim { opacity: .5; }
+.sync-dot{width:5px;height:5px;border-radius:50%;background:var(--c-green);animation:pulse .9s infinite}
+.sync-text{font-size:10px;font-weight:700;color:rgba(255,255,255,.75);letter-spacing:1px}
 
 /* 에러 오버레이 */
-.err-overlay {
-  display: none; position: absolute; inset: 0;
-  background: rgba(0,0,0,.85); z-index: 20;
-  flex-direction: column; align-items: center; justify-content: center;
-  gap: 8px; padding: 20px; text-align: center;
+.err-layer{
+  display:none;position:absolute;inset:0;z-index:20;
+  background:rgba(0,0,0,.88);flex-direction:column;align-items:center;justify-content:center;gap:12px;
 }
-.err-overlay.show { display: flex; }
-.err-btn {
-  margin-top: 10px; padding: 10px 22px;
-  background: var(--accent); border: none; color: white;
-  border-radius: 50px; font-size: 14px; font-weight: 700; cursor: pointer;
+.err-layer.on{display:flex}
+.err-title{font-size:15px;font-weight:800}
+.err-desc{font-size:12px;color:var(--c-t2);text-align:center;max-width:240px;line-height:1.6}
+.err-next-btn{
+  margin-top:4px;padding:10px 24px;border-radius:var(--r-f);
+  background:var(--c-accent);font-size:13px;font-weight:700;
 }
 
-/* ══════════════════════════════════════════════
+/* 채널 정보 바 (비디오 아래) */
+.ch-info-bar{
+  padding:12px 16px 10px;background:var(--c-s0);
+  border-bottom:1px solid var(--c-border-s);flex-shrink:0;
+}
+.ch-kw-tag{
+  display:inline-block;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--c-accent);background:var(--c-accent-d);border:1px solid rgba(255,51,86,.2);
+  padding:2px 10px;border-radius:var(--r-f);margin-bottom:6px;
+}
+.ch-title{font-size:16px;font-weight:800;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ch-sub{font-size:11px;color:var(--c-t2)}
+.progress-track{height:2px;background:var(--c-s3);border-radius:2px;margin-top:8px}
+.progress-fill{height:100%;background:var(--c-accent);border-radius:2px;transition:width .8s linear}
+
+/* 사이드바 */
+.sidebar{
+  width:0;overflow:hidden;display:flex;flex-direction:column;
+  background:var(--c-s0);border-left:1px solid var(--c-border-s);
+  transition:width .28s cubic-bezier(.4,0,.2,1);
+}
+.sidebar.open{width:320px}
+
+.sidebar-tabs{
+  display:flex;border-bottom:1px solid var(--c-border-s);flex-shrink:0;
+}
+.stab{
+  flex:1;height:44px;font-size:13px;font-weight:600;
+  color:var(--c-t2);border-bottom:2px solid transparent;transition:all .15s;
+}
+.stab.active{color:var(--c-text);border-bottom-color:var(--c-accent)}
+
+.tab-pane{display:none;flex-direction:column;flex:1;overflow:hidden}
+.tab-pane.active{display:flex}
+
+/* EPG */
+.epg-list{flex:1;overflow-y:auto;padding:12px 0}
+.epg-list::-webkit-scrollbar{width:3px}
+.epg-list::-webkit-scrollbar-track{background:transparent}
+.epg-list::-webkit-scrollbar-thumb{background:var(--c-border);border-radius:3px}
+.epg-row{
+  display:flex;gap:12px;padding:10px 16px;cursor:pointer;
+  border-bottom:1px solid var(--c-border-s);transition:background .12s;
+}
+.epg-row:last-child{border:none}
+.epg-row:hover{background:var(--c-s1)}
+.epg-time{font-size:11px;color:var(--c-t3);width:38px;flex-shrink:0;padding-top:2px;font-variant-numeric:tabular-nums}
+.epg-info{flex:1;min-width:0}
+.epg-ttl{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.epg-dur{font-size:11px;color:var(--c-t2);margin-top:2px}
+.epg-row.now .epg-time,.epg-row.now .epg-ttl{color:var(--c-accent);font-weight:700}
+.epg-prog{height:2px;background:var(--c-s3);border-radius:2px;margin-top:5px}
+.epg-prog-fill{height:100%;background:var(--c-accent);border-radius:2px}
+
+/* 채팅 */
+.chat-msgs{
+  flex:1;overflow-y:auto;padding:12px 14px;
+  display:flex;flex-direction:column;gap:8px;
+}
+.chat-msgs::-webkit-scrollbar{width:3px}
+.chat-msgs::-webkit-scrollbar-track{background:transparent}
+.chat-msgs::-webkit-scrollbar-thumb{background:var(--c-border);border-radius:3px}
+.chat-msg{display:flex;gap:8px;align-items:flex-start}
+.chat-avatar{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;
+}
+.chat-content{flex:1;min-width:0}
+.chat-username{font-size:10px;font-weight:700;color:var(--c-t2);margin-bottom:2px}
+.chat-text{font-size:13px;line-height:1.45;word-break:break-word}
+.chat-time{font-size:10px;color:var(--c-t3);margin-top:2px}
+.chat-own .chat-avatar{order:2}
+.chat-own .chat-content{order:1;text-align:right}
+.chat-own .chat-username{text-align:right}
+
+.chat-input-row{
+  padding:10px 12px;border-top:1px solid var(--c-border-s);
+  display:flex;gap:8px;flex-shrink:0;
+}
+.chat-input{
+  flex:1;height:36px;padding:0 12px;
+  background:var(--c-s2);border:1px solid var(--c-border);
+  border-radius:var(--r-f);font-size:13px;
+  transition:border-color .2s;-webkit-appearance:none;
+}
+.chat-input:focus{border-color:var(--c-accent)}
+.chat-input::placeholder{color:var(--c-t3)}
+.chat-send-btn{
+  height:36px;padding:0 14px;border-radius:var(--r-f);
+  background:var(--c-accent);font-size:12px;font-weight:700;
+  transition:opacity .12s;white-space:nowrap;
+}
+.chat-send-btn:active{opacity:.75}
+
+/* 컨트롤 바 */
+.ctrl-bar{
+  grid-row:3;display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;padding-bottom:var(--safe-b);
+  background:var(--c-s1);border-top:1px solid var(--c-border-s);
+  gap:6px;
+}
+.ctrl-group{display:flex;align-items:center;gap:6px}
+.ctrl-btn{
+  height:40px;min-width:40px;padding:0 12px;border-radius:var(--r-md);
+  background:var(--c-s2);border:1px solid var(--c-border-s);
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  font-size:12px;font-weight:600;color:var(--c-t2);transition:all .12s;
+  white-space:nowrap;
+}
+.ctrl-btn:hover,.ctrl-btn:active{background:var(--c-s3);color:var(--c-text)}
+.ctrl-btn.accent{background:var(--c-accent-d);border-color:rgba(255,51,86,.25);color:var(--c-accent)}
+.ctrl-btn.accent:hover{background:var(--c-accent);color:#fff}
+.ctrl-btn svg{width:16px;height:16px;fill:currentColor;flex-shrink:0}
+.ctrl-btn.active-btn{background:var(--c-accent);border-color:var(--c-accent);color:#fff}
+.live-indicator{display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;letter-spacing:2px;color:var(--c-accent)}
+
+/* ─────────────────────────────────────────────
+   ③ CAPTURE MODAL
+───────────────────────────────────────────── */
+.modal-bg{
+  display:none;position:fixed;inset:0;z-index:100;
+  background:rgba(0,0,0,.8);backdrop-filter:blur(8px);
+  align-items:center;justify-content:center;padding:20px;
+}
+.modal-bg.on{display:flex}
+.modal-card{
+  width:100%;max-width:520px;
+  background:var(--c-s1);border:1px solid var(--c-border);
+  border-radius:var(--r-xl);overflow:hidden;
+}
+.modal-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 20px;border-bottom:1px solid var(--c-border-s);
+}
+.modal-title{font-size:16px;font-weight:800}
+.modal-close{width:32px;height:32px;border-radius:var(--r-md);background:var(--c-s2);
+  display:flex;align-items:center;justify-content:center}
+.modal-close svg{width:16px;height:16px;fill:var(--c-t2)}
+.modal-body{padding:20px;display:flex;flex-direction:column;gap:14px}
+.canvas-preview-wrap{
+  width:100%;border-radius:var(--r-lg);overflow:hidden;background:#000;
+  position:relative;
+}
+#captureCanvas{width:100%;height:auto;display:block}
+.meme-input-group{display:flex;flex-direction:column;gap:8px}
+.meme-label{font-size:11px;font-weight:700;color:var(--c-t3);letter-spacing:1px;text-transform:uppercase;margin-bottom:2px}
+.meme-input{
+  height:40px;padding:0 14px;
+  background:var(--c-s2);border:1px solid var(--c-border);
+  border-radius:var(--r-md);font-size:14px;font-weight:700;text-align:center;
+  letter-spacing:1px;transition:border-color .2s;color:var(--c-text);
+  -webkit-appearance:none;
+}
+.meme-input:focus{border-color:var(--c-accent)}
+.meme-input::placeholder{color:var(--c-t3);font-weight:400;letter-spacing:0}
+.modal-actions{display:flex;gap:8px}
+.dl-btn{
+  flex:1;height:44px;border-radius:var(--r-lg);
+  background:var(--c-accent);font-size:14px;font-weight:700;
+  transition:opacity .12s;
+}
+.dl-btn:active{opacity:.8}
+.dl-btn.secondary{background:var(--c-s2);border:1px solid var(--c-border);color:var(--c-t2)}
+
+/* ─────────────────────────────────────────────
    TOAST
-══════════════════════════════════════════════ */
-.toast {
-  position: fixed; bottom: 80px; left: 50%;
-  transform: translateX(-50%) translateY(12px);
-  background: rgba(20,20,40,.95); border: 1px solid var(--border);
-  padding: 9px 16px; border-radius: 50px;
-  font-size: 13px; font-weight: 600;
-  opacity: 0; transition: all .22s;
-  z-index: 999; white-space: nowrap; pointer-events: none;
+───────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:80px;left:50%;
+  transform:translateX(-50%) translateY(8px);
+  background:var(--c-s2);border:1px solid var(--c-border);
+  padding:9px 16px;border-radius:var(--r-f);
+  font-size:13px;font-weight:600;
+  opacity:0;transition:all .2s;z-index:200;white-space:nowrap;pointer-events:none;
 }
-.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-/* ══════════════════════════════════════════════
-   DESKTOP / 가로모드 반응형
-   768px 이상이거나 가로 비율이면 웹 TV 레이아웃
-══════════════════════════════════════════════ */
-@media (min-width: 768px), (orientation: landscape) and (min-width: 600px) {
+/* ─────────────────────────────────────────────
+   RESPONSIVE — 데스크탑 (가로 or >=768px)
+───────────────────────────────────────────── */
+@media (min-width:768px),(orientation:landscape) and (min-width:600px){
+  /* 홈 */
+  #sHome{padding:0 40px}
+  .home-header{padding:28px 0 20px}
+  .brand-mark{font-size:28px}
+  .headline{font-size:26px}
+  .search-field{height:50px;font-size:15px}
+  .search-go{width:50px;height:50px}
+  .ch-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .ch-tile{padding:16px}
 
-  /* 홈 - 2컬럼 채널 그리드 */
-  #home {
-    padding: 0 40px 24px;
-    background:
-      radial-gradient(ellipse 60% 60% at 80% 50%, rgba(233,69,96,.1) 0%, transparent 60%),
-      radial-gradient(ellipse 50% 50% at 20% 50%, rgba(74,78,200,.08) 0%, transparent 60%),
-      var(--bg);
-  }
-  .home-header { padding: 28px 0 24px; }
-  .logo { font-size: 32px; }
-  .slogan { font-size: 28px; margin-bottom: 28px; }
-  .search-wrap { max-width: 600px; }
-  .search-input { height: 54px; font-size: 17px; border-radius: 16px; }
-  .search-btn { width: 54px; height: 54px; border-radius: 16px; font-size: 21px; }
-  #channelGrid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .ch-card { padding: 16px; }
-  .ch-icon { width: 52px; height: 52px; font-size: 26px; }
-  .ch-name { font-size: 15px; }
+  /* 플레이어 */
+  .player-hdr{padding:0 24px;gap:16px}
+  .hdr-search-wrap{max-width:360px}
+  .video-col{flex:1}
+  .sidebar{width:320px!important} /* 항상 열림 */
+  .ch-info-bar{display:none} /* 데스크탑은 사이드바에 표시 */
 
-  /* 플레이어 - 좌우 2컬럼 레이아웃 */
-  #player {
-    display: grid;
-    grid-template-columns: 1fr 340px;
-    grid-template-rows: 56px 1fr 80px;
-    grid-template-areas:
-      "topbar  topbar"
-      "video   sidebar"
-      "remote  remote";
-    background: var(--bg);
-  }
+  /* 컨트롤 */
+  .ctrl-bar{padding:0 24px}
+  .ctrl-btn{height:42px;padding:0 14px}
 
-  /* 데스크탑 상단바 */
-  .desktop-topbar {
-    grid-area: topbar;
-    display: flex !important;
-    align-items: center; justify-content: space-between;
-    padding: 0 24px;
-    background: var(--bg2); border-bottom: 1px solid var(--border);
-  }
-  .desktop-logo {
-    font-size: 20px; font-weight: 900; letter-spacing: 3px;
-    background: linear-gradient(135deg, #fff 20%, var(--accent));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
-  .desktop-search-wrap { display: flex !important; gap: 8px; }
-  .desktop-search-input {
-    width: 280px; height: 36px; padding: 0 14px;
-    background: var(--bg3); border: 1px solid var(--border);
-    border-radius: 50px; color: var(--text); font-size: 14px; outline: none;
-    -webkit-appearance: none;
-  }
-  .desktop-search-input:focus { border-color: var(--accent); }
-  .desktop-search-btn {
-    height: 36px; padding: 0 16px; border-radius: 50px;
-    background: var(--accent); border: none; color: white;
-    font-size: 13px; font-weight: 700; cursor: pointer;
-  }
-  .desktop-topbar-right { display: flex !important; align-items: center; gap: 12px; }
-  .desktop-ch-nav {
-    display: flex; gap: 4px;
-  }
-  .desktop-ch-btn {
-    width: 32px; height: 32px; border-radius: 8px;
-    background: var(--bg3); border: 1px solid var(--border);
-    color: var(--text); font-size: 13px; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: all .12s;
-  }
-  .desktop-ch-btn:hover { background: var(--accent); border-color: var(--accent); }
+  /* 모바일 전용 요소 */
+  .mob-only{display:none!important}
 
-  /* 비디오 영역 */
-  .video-wrap {
-    grid-area: video;
-    aspect-ratio: unset; height: 100%;
-    background: #000;
-  }
-
-  /* 사이드바 */
-  .player-sidebar {
-    grid-area: sidebar;
-    display: flex !important;
-    flex-direction: column;
-    background: var(--bg2); border-left: 1px solid var(--border);
-    overflow: hidden;
-  }
-  .sidebar-info {
-    padding: 16px 18px 12px;
-    border-bottom: 1px solid var(--border); flex-shrink: 0;
-  }
-  .sidebar-keyword {
-    font-size: 11px; font-weight: 700; color: var(--accent);
-    background: rgba(233,69,96,.12); border: 1px solid rgba(233,69,96,.25);
-    padding: 2px 9px; border-radius: 50px; display: inline-block;
-    margin-bottom: 6px; letter-spacing: 1px;
-  }
-  .sidebar-title { font-size: 15px; font-weight: 800; margin-bottom: 3px; }
-  .sidebar-sub { font-size: 12px; color: var(--muted); }
-
-  /* 사이드바 EPG */
-  .sidebar-epg {
-    flex: 1; overflow-y: auto; padding: 12px 18px;
-  }
-  .sidebar-epg::-webkit-scrollbar { width: 4px; }
-  .sidebar-epg::-webkit-scrollbar-track { background: transparent; }
-  .sidebar-epg::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
-
-  /* 데스크탑 리모컨 */
-  .remote {
-    grid-area: remote;
-    padding: 0 24px;
-    background: var(--bg2); border-top: 1px solid var(--border);
-    justify-content: flex-start; gap: 12px;
-  }
-  .remote-center {
-    flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
-  }
-  .remote-right { display: flex; align-items: center; gap: 8px; }
-  .r-btn { width: 44px; height: 44px; font-size: 16px; }
-  .r-btn.main { width: 44px; height: 44px; }
-
-  /* 모바일 전용 요소 숨김 */
-  .mobile-only { display: none !important; }
+  /* 데스크탑 전용 */
+  .desk-show{display:flex!important}
 }
-
-/* 모바일에서 숨길 데스크탑 전용 요소 */
-.desktop-topbar { display: none; }
-.desktop-search-wrap { display: none; }
-.desktop-topbar-right { display: none; }
-.player-sidebar { display: none; }
+@media not ((min-width:768px),(orientation:landscape) and (min-width:600px)){
+  .sidebar{display:none!important}
+  .hdr-search-wrap{display:none!important}
+  .hdr-right .hdr-search-wrap{display:none!important}
+  .desk-only{display:none!important}
+}
 </style>
 </head>
 <body>
 
-<!-- ════════════════════════════════════════ -->
-<!--  HOME SCREEN                             -->
-<!-- ════════════════════════════════════════ -->
-<div id="home" class="screen">
+<!-- SVG SPRITE (hidden) -->
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="ic-back" viewBox="0 0 24 24"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></symbol>
+  <symbol id="ic-search" viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.47 6.47 0 0016 9.5 6.5 6.5 0 109.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></symbol>
+  <symbol id="ic-home" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></symbol>
+  <symbol id="ic-prev" viewBox="0 0 24 24"><path d="M6 6h2v12H6V6zm3.5 6l8.5 6V6l-8.5 6z"/></symbol>
+  <symbol id="ic-next" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zm2.5-6l6-4.3v8.5L8.5 12zM16 6v12h2V6h-2z"/></symbol>
+  <symbol id="ic-vol" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77 0-4.28-2.99-7.86-7-8.77z"/></symbol>
+  <symbol id="ic-mute" viewBox="0 0 24 24"><path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/></symbol>
+  <symbol id="ic-camera" viewBox="0 0 24 24"><path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></symbol>
+  <symbol id="ic-chat" viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></symbol>
+  <symbol id="ic-guide" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z"/></symbol>
+  <symbol id="ic-ch-prev" viewBox="0 0 24 24"><path d="M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6z"/></symbol>
+  <symbol id="ic-ch-next" viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></symbol>
+  <symbol id="ic-close" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></symbol>
+  <symbol id="ic-dl" viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></symbol>
+  <symbol id="ic-music" viewBox="0 0 24 24"><path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/></symbol>
+  <symbol id="ic-tv" viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.1-.9-2-2-2zm0 14H3V5h18v12z"/></symbol>
+  <symbol id="ic-food" viewBox="0 0 24 24"><path d="M18.06 22.99h1.66c.84 0 1.53-.64 1.63-1.46L23 5.05h-5V1h-1.97v4.05h-4.97l.3 2.34c1.71.47 3.31 1.32 4.27 2.26 1.44 1.42 2.43 2.89 2.43 5.29v8.05zM1 21.99V21h15.03v.99c0 .55-.45 1-1.01 1H2.01c-.56 0-1.01-.45-1.01-1zm15.03-7c0-8-15.03-8-15.03 0h15.03zM1.02 17h15v2h-15z"/></symbol>
+</svg>
+
+<!-- ══════════════════════════════════════
+     HOME SCREEN
+══════════════════════════════════════ -->
+<div id="sHome" class="screen">
   <div class="home-header">
-    <div class="logo">TUNE</div>
-    <div class="live-pill"><div class="dot"></div>LIVE</div>
+    <div class="brand-mark">TUNE</div>
+    <div class="live-tag"><div class="pulse"></div>LIVE</div>
   </div>
-
-  <div class="slogan">키워드 하나로<br/><span>나만의 24시간 채널</span></div>
-
-  <div class="search-wrap">
-    <input class="search-input" id="homeSearch" type="text"
-      placeholder="BTS, 아이유, 먹방, ASMR..." autocomplete="off" />
-    <button class="search-btn" onclick="doSearch('homeSearch')">▶</button>
+  <div class="home-body">
+    <div class="headline">키워드 하나로<br/><em>24시간 채널 시작</em></div>
+    <div class="search-row">
+      <input class="search-field" id="homeQ" type="text" autocomplete="off" spellcheck="false"
+        placeholder="BTS, 아이유, 먹방, 어떤 키워드든..."/>
+      <button class="search-go" onclick="doSearch('homeQ')">
+        <svg><use href="#ic-search"/></svg>
+      </button>
+    </div>
+    <div>
+      <div class="label-xs" style="margin-bottom:10px">인기 키워드</div>
+      <div class="chip-row" id="chipRow"></div>
+    </div>
+    <div>
+      <div class="label-xs" style="margin-bottom:10px">전체 채널</div>
+      <div class="ch-grid" id="chGrid"></div>
+    </div>
   </div>
-
-  <div class="section-label">🔥 인기 채널</div>
-  <div class="chips" id="chips"></div>
-  <div class="section-label">📺 전체 채널</div>
-  <div id="channelGrid"></div>
 </div>
 
-<!-- ════════════════════════════════════════ -->
-<!--  PLAYER SCREEN                           -->
-<!-- ════════════════════════════════════════ -->
-<div id="player" class="screen hidden">
+<!-- ══════════════════════════════════════
+     PLAYER SCREEN
+══════════════════════════════════════ -->
+<div id="sPlayer" class="screen off">
 
-  <!-- 데스크탑 상단바 (가로 모드에서만 표시) -->
-  <div class="desktop-topbar">
-    <div class="desktop-logo">TUNE</div>
-    <div class="desktop-search-wrap">
-      <input class="desktop-search-input" id="desktopSearch" type="text"
-        placeholder="키워드 검색..." autocomplete="off" />
-      <button class="desktop-search-btn" onclick="doSearch('desktopSearch')">▶ 채널 변경</button>
+  <!-- 헤더 -->
+  <div class="player-hdr">
+    <button class="icon-btn mob-only" onclick="goHome()">
+      <svg><use href="#ic-back"/></svg>
+    </button>
+    <div class="player-logo desk-only">TUNE</div>
+    <div class="hdr-search-wrap">
+      <input class="hdr-search-input" id="playerQ" type="text" autocomplete="off"
+        placeholder="키워드 검색..."/>
+      <button class="hdr-search-btn" onclick="doSearch('playerQ')">채널 변경</button>
     </div>
-    <div class="desktop-topbar-right">
-      <div class="live-pill"><div class="dot"></div>LIVE SYNC</div>
-      <div class="desktop-ch-nav">
-        <button class="desktop-ch-btn" onclick="prevCh()" title="이전 채널">◀</button>
-        <button class="desktop-ch-btn" onclick="nextCh()" title="다음 채널">▶</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- 비디오 + 사이드바 영역 -->
-  <div class="video-wrap">
-    <iframe id="videoFrame"
-      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-      allowfullscreen>
-    </iframe>
-
-    <!-- 모바일 오버레이 상단 -->
-    <div class="v-overlay-top mobile-only">
-      <button class="back-btn" onclick="goHome()">←</button>
-      <div class="live-badge"><div class="dot"></div>LIVE</div>
-    </div>
-
-    <!-- 싱크 표시기 -->
-    <div class="sync-bar">
-      <div class="sync-indicator" id="syncIndicator">
-        <div class="sync-dot"></div>
-        <span id="syncText">전 세계 동기화됨</span>
-      </div>
-    </div>
-
-    <!-- 에러 오버레이 -->
-    <div class="err-overlay" id="errOverlay">
-      <div style="font-size:36px">😅</div>
-      <div style="font-size:15px;font-weight:800">영상 재생 실패</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:4px">이 영상은 임베드가 제한돼 있어요.</div>
-      <button class="err-btn" onclick="nextVideo()">다음 영상 ▶</button>
+    <div class="hdr-right" style="display:flex;align-items:center;gap:8px">
+      <div class="live-indicator desk-only"><div class="pulse"></div>LIVE SYNC</div>
+      <div class="hdr-clock" id="hdrClock">--:--</div>
     </div>
   </div>
 
-  <!-- 사이드바 (데스크탑) -->
-  <div class="player-sidebar">
-    <div class="sidebar-info">
-      <div class="sidebar-keyword" id="sideKeyword">#키워드</div>
-      <div class="sidebar-title" id="sideTitle">영상 제목</div>
-      <div class="sidebar-sub" id="sideSub">방송 중</div>
-      <div style="margin-top:8px">
-        <div class="progress-bar-wrap">
-          <div class="progress-bar-fill" id="sideProgress" style="width:0%"></div>
+  <!-- 바디 -->
+  <div class="player-body">
+
+    <!-- 비디오 컬럼 -->
+    <div class="video-col">
+
+      <!-- 비디오 -->
+      <div class="video-wrap">
+        <iframe id="vFrame"
+          allow="accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture"
+          allowfullscreen></iframe>
+        <div class="sync-overlay">
+          <div class="sync-dot"></div>
+          <span class="sync-text" id="syncText">전 세계 동기화</span>
+        </div>
+        <div class="err-layer" id="errLayer">
+          <div class="err-title">재생 불가</div>
+          <div class="err-desc">이 영상은 외부 임베드가 제한돼 있습니다. 다음 영상으로 넘어갑니다.</div>
+          <button class="err-next-btn" onclick="nextVid()">다음 영상</button>
+        </div>
+      </div>
+
+      <!-- 채널 정보 (모바일) -->
+      <div class="ch-info-bar mob-only">
+        <div class="ch-kw-tag" id="infoKw">KEYWORD</div>
+        <div class="ch-title" id="infoTitle">-</div>
+        <div class="ch-sub" id="infoSub">-</div>
+        <div class="progress-track"><div class="progress-fill" id="infoProg" style="width:0%"></div></div>
+      </div>
+
+      <!-- 모바일: EPG/채팅 탭 영역 -->
+      <div class="mob-only" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+        <div class="sidebar-tabs">
+          <button class="stab active" onclick="mobTab('epg',this)">편성표</button>
+          <button class="stab" onclick="mobTab('chat',this)">실시간 채팅</button>
+        </div>
+        <div class="tab-pane active" id="mobEpgPane">
+          <div class="epg-list" id="mobEpgList"></div>
+        </div>
+        <div class="tab-pane" id="mobChatPane">
+          <div class="chat-msgs" id="mobChatMsgs"></div>
+          <div class="chat-input-row">
+            <input class="chat-input" id="mobChatIn" placeholder="메시지를 입력하세요" autocomplete="off"/>
+            <button class="chat-send-btn" onclick="sendChat('mob')">전송</button>
+          </div>
         </div>
       </div>
     </div>
-    <!-- Premium 안내 -->
-    <div style="padding:8px 18px;font-size:11px;color:rgba(255,180,0,.8);border-bottom:1px solid var(--border);background:rgba(255,180,0,.05)">
-      ⭐ <a href="https://www.youtube.com/premium" target="_blank" style="color:#ffb400;font-weight:700">YouTube Premium</a> 사용자는 YouTube에 로그인하면 광고 없이 시청돼요.
+
+    <!-- 사이드바 (데스크탑) -->
+    <div class="sidebar" id="sidebar">
+      <div style="padding:16px;border-bottom:1px solid var(--c-border-s);flex-shrink:0">
+        <div class="ch-kw-tag" id="sideKw">KEYWORD</div>
+        <div class="ch-title" id="sideTitle" style="margin-bottom:4px">-</div>
+        <div class="ch-sub" id="sideSub">-</div>
+        <div class="progress-track" style="margin-top:8px">
+          <div class="progress-fill" id="sideProg" style="width:0%"></div>
+        </div>
+      </div>
+      <div class="sidebar-tabs">
+        <button class="stab active" onclick="sideTab('epg',this)">편성표</button>
+        <button class="stab" onclick="sideTab('chat',this)">채팅</button>
+      </div>
+      <div class="tab-pane active" id="sideEpgPane">
+        <div class="epg-list" id="sideEpgList"></div>
+      </div>
+      <div class="tab-pane" id="sideChatPane">
+        <div class="chat-msgs" id="sideChatMsgs"></div>
+        <div class="chat-input-row">
+          <input class="chat-input" id="sideChatIn" placeholder="메시지 입력..." autocomplete="off"/>
+          <button class="chat-send-btn" onclick="sendChat('side')">전송</button>
+        </div>
+      </div>
     </div>
-    <div class="sidebar-epg" id="sideEPG"></div>
-  </div>
 
-  <!-- 모바일 채널 정보 -->
-  <div class="info-bar mobile-only">
-    <div class="info-keyword" id="mobileKeyword">#키워드</div>
-    <div class="info-title" id="mobileTitle">영상 제목</div>
-    <div class="info-sub" id="mobileSub">방송 중</div>
-    <!-- 진행 바 -->
-    <div class="progress-bar-wrap" style="margin-top:8px">
-      <div class="progress-bar-fill" id="mobileProgress" style="width:0%"></div>
+  </div><!-- /player-body -->
+
+  <!-- 컨트롤 바 -->
+  <div class="ctrl-bar">
+    <div class="ctrl-group">
+      <button class="ctrl-btn" onclick="goHome()" title="홈">
+        <svg><use href="#ic-home"/></svg>
+      </button>
+    </div>
+    <div class="ctrl-group">
+      <button class="ctrl-btn" onclick="prevCh()" title="이전 채널">
+        <svg><use href="#ic-ch-prev"/></svg><span class="desk-only">채널</span>
+      </button>
+      <button class="ctrl-btn" onclick="prevVid()" title="이전 영상">
+        <svg><use href="#ic-prev"/></svg>
+      </button>
+      <button class="ctrl-btn accent" onclick="toggleMute()" id="muteBtn" title="음소거">
+        <svg id="muteIc"><use href="#ic-mute"/></svg>
+      </button>
+      <button class="ctrl-btn" onclick="nextVid()" title="다음 영상">
+        <svg><use href="#ic-next"/></svg>
+      </button>
+      <button class="ctrl-btn" onclick="nextCh()" title="다음 채널">
+        <svg><use href="#ic-ch-next"/></svg><span class="desk-only">채널</span>
+      </button>
+    </div>
+    <div class="ctrl-group">
+      <button class="ctrl-btn accent" onclick="openCapture()" title="캡처">
+        <svg><use href="#ic-camera"/></svg><span class="desk-only">캡처 / 짤</span>
+      </button>
+      <button class="ctrl-btn desk-only" onclick="toggleSidebar()" id="chatToggleBtn" title="채팅">
+        <svg><use href="#ic-chat"/></svg><span>채팅</span>
+      </button>
     </div>
   </div>
 
-  <!-- 모바일 Premium 안내 -->
-  <div class="premium-bar mobile-only">
-    ⭐ <span><a href="https://www.youtube.com/premium" target="_blank">YouTube Premium</a> 로그인 시 광고 없음</span>
-  </div>
+</div><!-- /sPlayer -->
 
-  <!-- 모바일 EPG -->
-  <div class="epg-panel mobile-only" id="mobileEPG">
-    <div class="epg-label">편성표</div>
-    <div id="mobileEPGList"></div>
-  </div>
-
-  <!-- 리모컨 -->
-  <div class="remote">
-    <!-- 모바일: 홈버튼, 데스크탑: 홈버튼 -->
-    <button class="r-btn" onclick="goHome()" title="홈">🏠</button>
-    <div class="remote-center">
-      <button class="r-btn" onclick="prevCh()" title="이전 채널">⏮</button>
-      <button class="r-btn" onclick="prevVideo()" title="이전 영상">◀</button>
-      <button class="r-btn main" onclick="toggleMute()" id="muteBtn" title="음소거">🔇</button>
-      <button class="r-btn" onclick="nextVideo()" title="다음 영상">▶</button>
-      <button class="r-btn" onclick="nextCh()" title="다음 채널">⏭</button>
+<!-- ══════════════════════════════════════
+     CAPTURE MODAL
+══════════════════════════════════════ -->
+<div class="modal-bg" id="captureModal">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div class="modal-title">짤 / 이미지 캡처</div>
+      <button class="modal-close" onclick="closeCapture()">
+        <svg><use href="#ic-close"/></svg>
+      </button>
     </div>
-    <div class="remote-right">
-      <div id="clockDisplay" style="font-size:12px;color:var(--muted);font-weight:700;min-width:44px;text-align:center"></div>
+    <div class="modal-body">
+      <div class="canvas-preview-wrap">
+        <canvas id="captureCanvas"></canvas>
+      </div>
+      <div class="meme-input-group">
+        <div class="meme-label">상단 텍스트</div>
+        <input class="meme-input" id="memeTop" placeholder="상단에 들어갈 텍스트" autocomplete="off"
+          oninput="renderCanvas()"/>
+      </div>
+      <div class="meme-input-group">
+        <div class="meme-label">하단 텍스트</div>
+        <input class="meme-input" id="memeBot" placeholder="하단에 들어갈 텍스트" autocomplete="off"
+          oninput="renderCanvas()"/>
+      </div>
+      <div class="modal-actions">
+        <button class="dl-btn secondary" onclick="closeCapture()">취소</button>
+        <button class="dl-btn" onclick="downloadCapture()">
+          PNG 다운로드
+        </button>
+      </div>
     </div>
   </div>
-
 </div>
 
 <div class="toast" id="toast"></div>
 
-<!-- ════════════════════════════════════════ -->
-<!--  JavaScript                              -->
-<!-- ════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════ -->
 <script>
-// ══════════════════════════════════════════
-//  ★ 핵심 싱크 로직 ★
-//  전 세계 어디서든 같은 키워드 = 같은 장면
-//
-//  원리:
-//  - STARTED_AT = 오늘 UTC 자정 (전 세계 동일 기준점)
-//  - elapsed = (지금 UTC 시각 - 기준점) / 1000 초
-//  - 채널 총 길이로 나눈 나머지 = 현재 위치
-//  - Date.now()는 UTC밀리초 = 서울이든 뉴욕이든 동일
-// ══════════════════════════════════════════
-const STARTED_AT = (() => {
+// ────────────────────────────────────────
+// ★ 글로벌 싱크 기준점
+// Date.now() = UTC 밀리초 → 전 세계 동일
+// ────────────────────────────────────────
+const EPOCH = (() => {
   const d = new Date();
-  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate());
+  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()); // 오늘 UTC 자정
 })();
 
-function computePosition(channel) {
-  const totalDur = channel.videos.reduce((s, v) => s + v.dur, 0);
-  // Date.now() = UTC 밀리초. 시간대 무관. 전 세계 동일값.
-  const elapsed = Math.floor((Date.now() - STARTED_AT) / 1000) % totalDur;
+function calcPos(ch) {
+  const total = ch.videos.reduce((s,v) => s + v.dur, 0);
+  const elapsed = Math.floor((Date.now() - EPOCH) / 1000) % total;
   let acc = 0;
-  for (let i = 0; i < channel.videos.length; i++) {
-    if (elapsed < acc + channel.videos[i].dur) {
-      return {
-        videoIdx: i,
-        offset: elapsed - acc,       // 이 영상 안에서의 초 위치
-        elapsed: elapsed,            // 채널 전체에서의 초 위치
-        totalDur,
-        video: channel.videos[i]
-      };
-    }
-    acc += channel.videos[i].dur;
+  for (let i = 0; i < ch.videos.length; i++) {
+    if (elapsed < acc + ch.videos[i].dur)
+      return { idx: i, offset: elapsed - acc, elapsed, total, vid: ch.videos[i] };
+    acc += ch.videos[i].dur;
   }
-  return { videoIdx: 0, offset: 0, elapsed: 0, totalDur, video: channel.videos[0] };
+  return { idx: 0, offset: 0, elapsed: 0, total, vid: ch.videos[0] };
 }
 
-// ══════════════════════════════════════════
-//  채널 데이터
-// ══════════════════════════════════════════
-const CHANNELS = [
+// ────────────────────────────────────────
+// 채널 데이터
+// ────────────────────────────────────────
+const POOL = [
+  // 임베드 가능이 확인된 영상들 (fallback용)
+  { id:"M7lc1UVf-VE", title:"Stream Mix #1",     dur:600 },
+  { id:"JGwWNGJdvx8", title:"Stream Mix #2",     dur:234 },
+  { id:"2Vv-BfVoq4g", title:"Stream Mix #3",     dur:229 },
+  { id:"dQw4w9WgXcQ", title:"Stream Mix #4",     dur:212 },
+  { id:"jNQXAC9IVRw", title:"Stream Mix #5",     dur:18  },
+  { id:"Ks-_Mh1QhMc", title:"Stream Mix #6",     dur:55  },
+];
+
+const CURATED = [
   {
-    key: "BTS", label: "BTS 24시간", emoji: "💜", accent: "#7c3aed",
-    desc: "BTS 공식 MV & 퍼포먼스",
-    videos: [
-      { id: "gdZLi9oWNZg", title: "BTS - Dynamite",             dur: 225 },
-      { id: "MBdVXkSdhwU", title: "BTS - Permission to Dance",  dur: 185 },
-      { id: "_dK2tDK9grQ", title: "BTS - DNA",                  dur: 274 },
-      { id: "TJ3bZ8OZhQ4", title: "BTS - FAKE LOVE",            dur: 248 },
-      { id: "XsX3ATc3FbA", title: "BTS - Boy With Luv",         dur: 254 },
-      { id: "5anLPw0Efmo", title: "BTS - Butter",               dur: 164 },
+    key:"BTS", label:"BTS 24H", color:"#7c3aed",
+    icon:"ic-music",
+    keywords:["bts","방탄","방탄소년단","bangtan"],
+    videos:[
+      {id:"gdZLi9oWNZg",title:"BTS - Dynamite",            dur:225},
+      {id:"MBdVXkSdhwU",title:"BTS - Permission to Dance", dur:185},
+      {id:"_dK2tDK9grQ",title:"BTS - DNA",                 dur:274},
+      {id:"TJ3bZ8OZhQ4",title:"BTS - FAKE LOVE",           dur:248},
+      {id:"XsX3ATc3FbA",title:"BTS - Boy With Luv",        dur:254},
+      {id:"5anLPw0Efmo",title:"BTS - Butter",              dur:164},
+      {id:"9pdj4iJD08s",title:"BTS - Spring Day",          dur:280},
     ]
   },
   {
-    key: "블랙핑크", label: "BLACKPINK", emoji: "🖤", accent: "#db2777",
-    desc: "BLACKPINK 공식 MV",
-    videos: [
-      { id: "IHNzOHi8sJs", title: "BLACKPINK - DDU-DU DDU-DU",  dur: 209 },
-      { id: "ioNng23DkIM", title: "BLACKPINK - Kill This Love",  dur: 186 },
-      { id: "Amq-qlqbjYA", title: "BLACKPINK - How You Like That", dur: 189 },
-      { id: "0nb8nqMExzA", title: "BLACKPINK - Pink Venom",     dur: 186 },
-      { id: "CevxZvSJLk8", title: "BLACKPINK - Lovesick Girls", dur: 235 },
+    key:"BLACKPINK", label:"BLACKPINK 24H", color:"#db2777",
+    icon:"ic-music",
+    keywords:["blackpink","블랙핑크","bp","블핑"],
+    videos:[
+      {id:"IHNzOHi8sJs",title:"BLACKPINK - DDU-DU DDU-DU",    dur:209},
+      {id:"ioNng23DkIM",title:"BLACKPINK - Kill This Love",    dur:186},
+      {id:"Amq-qlqbjYA",title:"BLACKPINK - How You Like That", dur:189},
+      {id:"0nb8nqMExzA",title:"BLACKPINK - Pink Venom",       dur:186},
+      {id:"CevxZvSJLk8",title:"BLACKPINK - Lovesick Girls",   dur:235},
     ]
   },
   {
-    key: "아이유", label: "아이유 IU", emoji: "🌸", accent: "#f59e0b",
-    desc: "아이유 뮤직비디오 & 라이브",
-    videos: [
-      { id: "0-q1KafFCLU", title: "IU - Celebrity",         dur: 221 },
-      { id: "y5yWSzQ-5bE", title: "IU - Lilac",             dur: 232 },
-      { id: "GnHvFdXXFrY", title: "IU - Strawberry Moon",   dur: 214 },
-      { id: "SBvQ5SHiMoU", title: "IU - eight",             dur: 213 },
-      { id: "vm5OOKZB9SI", title: "IU - BBIBBI",            dur: 184 },
+    key:"IU", label:"아이유 IU 24H", color:"#d97706",
+    icon:"ic-music",
+    keywords:["아이유","iu","이지은"],
+    videos:[
+      {id:"0-q1KafFCLU",title:"IU - Celebrity",       dur:221},
+      {id:"y5yWSzQ-5bE",title:"IU - Lilac",           dur:232},
+      {id:"GnHvFdXXFrY",title:"IU - Strawberry Moon", dur:214},
+      {id:"SBvQ5SHiMoU",title:"IU - eight",           dur:213},
+      {id:"vm5OOKZB9SI",title:"IU - BBIBBI",          dur:184},
+      {id:"5NGfgMI2OoE",title:"IU - Good Day",        dur:217},
     ]
   },
   {
-    key: "먹방", label: "먹방 채널 🍜", emoji: "🍜", accent: "#ea580c",
-    desc: "한국 인기 먹방 모음",
-    videos: [
-      { id: "M7lc1UVf-VE", title: "먹방 #1",  dur: 600 },
-      { id: "JGwWNGJdvx8", title: "먹방 #2",  dur: 234 },
-      { id: "2Vv-BfVoq4g", title: "먹방 #3",  dur: 229 },
-      { id: "jNQXAC9IVRw", title: "먹방 #4",  dur: 18  },
+    key:"NEWJEANS", label:"NewJeans 24H", color:"#0ea5e9",
+    icon:"ic-music",
+    keywords:["newjeans","뉴진스","new jeans"],
+    videos:[
+      {id:"ArmDp-zijuc",title:"NewJeans - Hype Boy",   dur:182},
+      {id:"bwmSjveL3Lc",title:"NewJeans - Ditto",      dur:186},
+      {id:"G6gRTb4Ykxk",title:"NewJeans - OMG",        dur:226},
+      {id:"5RkPOPEBLSA",title:"NewJeans - Super Shy",  dur:168},
+      {id:"2ASSgFdBkQ4",title:"NewJeans - ETA",        dur:175},
     ]
   },
   {
-    key: "ASMR", label: "ASMR 힐링", emoji: "🌙", accent: "#2563eb",
-    desc: "편안한 ASMR 24시간",
-    videos: [
-      { id: "M7lc1UVf-VE", title: "ASMR Rain",        dur: 600 },
-      { id: "JGwWNGJdvx8", title: "ASMR Forest",      dur: 234 },
-      { id: "2Vv-BfVoq4g", title: "ASMR Ocean",       dur: 229 },
-      { id: "dQw4w9WgXcQ", title: "ASMR Night Cafe",  dur: 212 },
+    key:"AESPA", label:"aespa 24H", color:"#8b5cf6",
+    icon:"ic-music",
+    keywords:["aespa","에스파","æspa"],
+    videos:[
+      {id:"4TWR90KJl84",title:"aespa - Black Mamba",  dur:233},
+      {id:"WPdWvnAAurg",title:"aespa - Next Level",   dur:212},
+      {id:"BoIVToFL91k",title:"aespa - Savage",       dur:207},
+      {id:"drJObFcfxhU",title:"aespa - Girls",        dur:212},
     ]
   },
   {
-    key: "힐링", label: "힐링 자연", emoji: "🌿", accent: "#16a34a",
-    desc: "자연 & 풍경 영상 모음",
-    videos: [
-      { id: "JGwWNGJdvx8", title: "힐링 자연 #1", dur: 234 },
-      { id: "2Vv-BfVoq4g", title: "힐링 자연 #2", dur: 229 },
-      { id: "M7lc1UVf-VE", title: "힐링 자연 #3", dur: 600 },
-      { id: "dQw4w9WgXcQ", title: "힐링 자연 #4", dur: 212 },
+    key:"SEVENTEEN", label:"SEVENTEEN 24H", color:"#06b6d4",
+    icon:"ic-music",
+    keywords:["seventeen","세븐틴","svt"],
+    videos:[
+      {id:"IHiAIFZh_xY",title:"SEVENTEEN - VERY NICE",    dur:209},
+      {id:"nJqGLSWLHrk",title:"SEVENTEEN - Clap",         dur:200},
+      {id:"9w09GEH3aBk",title:"SEVENTEEN - Don't Wanna Cry",dur:215},
     ]
   },
   {
-    key: "팝송", label: "팝 & R&B", emoji: "🎵", accent: "#ca8a04",
-    desc: "해외 인기 팝송 24시간",
-    videos: [
-      { id: "JGwWNGJdvx8", title: "Ed Sheeran - Shape of You",         dur: 234 },
-      { id: "2Vv-BfVoq4g", title: "Wiz Khalifa - See You Again",       dur: 229 },
-      { id: "dQw4w9WgXcQ", title: "Rick Astley - Never Gonna Give Up", dur: 212 },
-      { id: "M7lc1UVf-VE", title: "Classic Hits Mix",                  dur: 600 },
+    key:"PSY", label:"PSY 싸이 24H", color:"#f59e0b",
+    icon:"ic-music",
+    keywords:["psy","싸이","강남스타일","gangnam"],
+    videos:[
+      {id:"9bZkp7q19f0",title:"PSY - GANGNAM STYLE",  dur:253},
+      {id:"ASO_zypdnsQ",title:"PSY - GENTLEMAN",      dur:243},
+      {id:"FrG4TEtSNTc",title:"PSY - Daddy",          dur:247},
     ]
   },
   {
-    key: "유재석", label: "유재석 예능", emoji: "😂", accent: "#d97706",
-    desc: "런닝맨, 무한도전 명장면",
-    videos: [
-      { id: "M7lc1UVf-VE", title: "런닝맨 명장면 #1",  dur: 600 },
-      { id: "jNQXAC9IVRw", title: "무한도전 레전드 #1", dur: 18  },
-      { id: "dQw4w9WgXcQ", title: "유퀴즈 #1",          dur: 212 },
-      { id: "2Vv-BfVoq4g", title: "런닝맨 명장면 #2",  dur: 229 },
+    key:"TWICE", label:"TWICE 24H", color:"#f472b6",
+    icon:"ic-music",
+    keywords:["twice","트와이스","트와"],
+    videos:[
+      {id:"R9At2ICm4LQ",title:"TWICE - TT",          dur:213},
+      {id:"PhZhMC5pTzs",title:"TWICE - FANCY",       dur:207},
+      {id:"aUmTRmAfHXo",title:"TWICE - What is Love?",dur:206},
+    ]
+  },
+  {
+    key:"FOOD", label:"먹방 채널 24H", color:"#ea580c",
+    icon:"ic-food",
+    keywords:["먹방","mukbang","음식","food","요리","cooking","맛집"],
+    videos:[
+      {id:"M7lc1UVf-VE",title:"먹방 베스트 #1",  dur:600},
+      {id:"JGwWNGJdvx8",title:"먹방 베스트 #2",  dur:234},
+      {id:"2Vv-BfVoq4g",title:"먹방 베스트 #3",  dur:229},
+      {id:"dQw4w9WgXcQ",title:"먹방 베스트 #4",  dur:212},
+    ]
+  },
+  {
+    key:"ASMR", label:"ASMR 힐링 24H", color:"#0284c7",
+    icon:"ic-tv",
+    keywords:["asmr","힐링","healing","relax","relaxing","수면","잠","sleep"],
+    videos:[
+      {id:"M7lc1UVf-VE",title:"ASMR Rain Sounds",   dur:600},
+      {id:"JGwWNGJdvx8",title:"ASMR Forest Walk",   dur:234},
+      {id:"2Vv-BfVoq4g",title:"ASMR Ocean Waves",   dur:229},
+      {id:"Ks-_Mh1QhMc",title:"ASMR Night Cafe",    dur:55 },
+    ]
+  },
+  {
+    key:"NATURE", label:"자연 힐링 24H", color:"#16a34a",
+    icon:"ic-tv",
+    keywords:["자연","nature","풍경","landscape","scenic","여행","travel"],
+    videos:[
+      {id:"JGwWNGJdvx8",title:"자연 힐링 #1",  dur:234},
+      {id:"2Vv-BfVoq4g",title:"자연 힐링 #2",  dur:229},
+      {id:"M7lc1UVf-VE",title:"자연 힐링 #3",  dur:600},
+      {id:"dQw4w9WgXcQ",title:"자연 힐링 #4",  dur:212},
+    ]
+  },
+  {
+    key:"POP", label:"팝 & R&B 24H", color:"#ca8a04",
+    icon:"ic-music",
+    keywords:["팝","pop","팝송","kpop","k-pop","팝스","r&b","rnb","팝뮤직"],
+    videos:[
+      {id:"JGwWNGJdvx8",title:"Ed Sheeran - Shape of You",        dur:234},
+      {id:"2Vv-BfVoq4g",title:"Wiz Khalifa - See You Again",      dur:229},
+      {id:"dQw4w9WgXcQ",title:"Rick Astley - Never Gonna Give Up",dur:212},
+      {id:"M7lc1UVf-VE",title:"Pop Hits Mix",                     dur:600},
+    ]
+  },
+  {
+    key:"VARIETY", label:"예능 / 버라이어티 24H", color:"#eab308",
+    icon:"ic-tv",
+    keywords:["예능","variety","런닝맨","무한도전","유재석","이경규","드라마","drama","comedy","코미디"],
+    videos:[
+      {id:"M7lc1UVf-VE",title:"예능 베스트 #1",  dur:600},
+      {id:"jNQXAC9IVRw",title:"예능 베스트 #2",  dur:18 },
+      {id:"dQw4w9WgXcQ",title:"예능 베스트 #3",  dur:212},
+      {id:"2Vv-BfVoq4g",title:"예능 베스트 #4",  dur:229},
     ]
   },
 ];
 
-// ══════════════════════════════════════════
-//  상태
-// ══════════════════════════════════════════
-let curChannel  = null;
-let curVideoIdx = 0;
-let isMuted     = true;
-let syncTimers  = [];
+// ────────────────────────────────────────
+// 키워드 매칭 엔진
+// ────────────────────────────────────────
+function findChannel(raw) {
+  if (!raw || !raw.trim()) return null;
+  const q = raw.trim().toLowerCase();
 
-// ══════════════════════════════════════════
-//  유틸
-// ══════════════════════════════════════════
-const $ = id => document.getElementById(id);
+  // 1단계: 정확 매칭
+  for (const ch of CURATED) {
+    if (ch.keywords.some(k => k === q)) return ch;
+  }
 
-function showToast(msg) {
+  // 2단계: 포함 매칭 (입력이 키워드를 포함하거나, 키워드가 입력을 포함)
+  for (const ch of CURATED) {
+    if (ch.keywords.some(k => q.includes(k) || k.includes(q))) return ch;
+  }
+
+  // 3단계: key / label 매칭
+  for (const ch of CURATED) {
+    if (ch.key.toLowerCase().includes(q) || q.includes(ch.key.toLowerCase())) return ch;
+    if (ch.label.toLowerCase().includes(q)) return ch;
+  }
+
+  // 4단계: 결정적 해시 기반 자동 채널 생성 (어떤 키워드든 동작)
+  return generateCh(raw.trim());
+}
+
+function strHash(s) {
+  let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h) ^ s.charCodeAt(i);
+  return Math.abs(h >>> 0);
+}
+
+function generateCh(keyword) {
+  const h = strHash(keyword.toLowerCase());
+  // Pool을 hash 기반으로 셔플해서 고유하지만 결정적인 채널 생성
+  const shuffled = [...POOL].sort((a,b) => (strHash(a.id + h) % 100) - (strHash(b.id + h) % 100));
+  // 색상도 키워드에서 결정
+  const hue = h % 360;
+  const colors = [
+    `hsl(${hue},70%,55%)`,
+    `hsl(${(hue+60)%360},65%,50%)`,
+    `hsl(${(hue+180)%360},60%,55%)`,
+  ];
+  const color = colors[h % colors.length];
+  return {
+    key: keyword,
+    label: `${keyword} 채널`,
+    color,
+    icon:"ic-tv",
+    keywords:[keyword.toLowerCase()],
+    videos: shuffled.map((v,i) => ({...v, title:`${keyword} — ${v.title}`})),
+    isGenerated: true,
+  };
+}
+
+// ────────────────────────────────────────
+// 상태
+// ────────────────────────────────────────
+let cur = null;        // 현재 채널
+let curVidIdx = 0;     // 현재 영상 인덱스
+let muted = true;      // 음소거 상태
+let sidebarOpen = true;// 사이드바 상태
+let loopTimers = [];   // 인터벌 목록
+let chatInterval = null;
+
+// ────────────────────────────────────────
+// 유틸
+// ────────────────────────────────────────
+const $  = id => document.getElementById(id);
+const fmtHHMM = sec => {
+  const ms = EPOCH + sec * 1000;
+  const d  = new Date(ms);
+  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+};
+const fmtMMSS = sec => {
+  const m = Math.floor(Math.abs(sec) / 60), s = Math.abs(sec) % 60;
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+};
+const nowHHMM = () => { const d = new Date(); return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`; };
+
+function toast(msg, dur=2000) {
   const t = $("toast");
   t.textContent = msg; t.classList.add("show");
-  clearTimeout(t._timer);
-  t._timer = setTimeout(() => t.classList.remove("show"), 2000);
+  clearTimeout(t._t); t._t = setTimeout(()=>t.classList.remove("show"), dur);
 }
 
-function fmtMMSS(sec) {
-  const m = Math.floor(sec / 60), s = sec % 60;
-  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-}
-function fmtHHMM(sec) {
-  // 오늘 UTC 자정 기준으로 시각 계산
-  const ms = STARTED_AT + sec * 1000;
-  const d = new Date(ms);
-  return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-}
-
-// ══════════════════════════════════════════
-//  홈 렌더
-// ══════════════════════════════════════════
+// ────────────────────────────────────────
+// 홈 렌더
+// ────────────────────────────────────────
 function renderHome() {
   // 칩
-  $("chips").innerHTML = "";
-  CHANNELS.forEach(ch => {
-    const el = document.createElement("div");
-    el.className = "chip";
-    el.textContent = ch.emoji + " " + ch.key;
-    el.onclick = () => openChannel(ch);
-    $("chips").appendChild(el);
+  const chipRow = $("chipRow");
+  chipRow.innerHTML = "";
+  ["BTS","BLACKPINK","아이유","NewJeans","먹방","ASMR","힐링","팝송"].forEach(kw => {
+    const b = document.createElement("button");
+    b.className = "kw-chip"; b.textContent = kw;
+    b.onclick = () => doSearch(null, kw);
+    chipRow.appendChild(b);
   });
 
-  // 채널 카드
-  $("channelGrid").innerHTML = "";
-  CHANNELS.forEach(ch => {
-    const pos = computePosition(ch);
+  // 채널 그리드
+  const grid = $("chGrid");
+  grid.innerHTML = "";
+  CURATED.forEach(ch => {
+    const pos = calcPos(ch);
     const card = document.createElement("div");
-    card.className = "ch-card";
+    card.className = "ch-tile";
+    card.style.setProperty("--tile-color", ch.color);
+    card.style.setProperty("--tile-color-d", ch.color+"22");
     card.innerHTML = `
-      <style>.ch-card[data-key="${ch.key}"]::before{background:${ch.accent}}</style>
-      <div class="ch-icon" style="background:${ch.accent}20">${ch.emoji}</div>
-      <div class="ch-meta">
-        <div class="ch-name">${ch.label}</div>
-        <div class="ch-desc">▶ ${pos.video.title}</div>
+      <div class="tile-icon">
+        <svg style="fill:${ch.color}"><use href="#${ch.icon}"/></svg>
       </div>
-      <div class="ch-badge">LIVE</div>
+      <div class="tile-meta">
+        <div class="tile-name">${ch.label}</div>
+        <div class="tile-now">${pos.vid.title}</div>
+      </div>
+      <div class="tile-badge">LIVE</div>
     `;
-    card.dataset.key = ch.key;
-    card.onclick = () => openChannel(ch);
-    $("channelGrid").appendChild(card);
+    card.onclick = () => openCh(ch);
+    grid.appendChild(card);
   });
 }
 
-// ══════════════════════════════════════════
-//  검색
-// ══════════════════════════════════════════
-function doSearch(inputId) {
-  const q = $(inputId).value.trim();
-  if (!q) { $(inputId).focus(); return; }
-  const lo = q.toLowerCase();
-  const match = CHANNELS.find(ch =>
-    ch.key.toLowerCase().includes(lo) || lo.includes(ch.key.toLowerCase())
-  );
-  if (match) {
-    openChannel(match);
-  } else {
-    // 키워드 임시 채널 생성
-    openChannel({
-      key: q, label: `#${q} 채널`, emoji: "📺", accent: "#e94560",
-      desc: `"${q}" 관련 영상`,
-      videos: [
-        { id: "M7lc1UVf-VE", title: `${q} #1`, dur: 600 },
-        { id: "JGwWNGJdvx8", title: `${q} #2`, dur: 234 },
-        { id: "2Vv-BfVoq4g", title: `${q} #3`, dur: 229 },
-      ]
-    });
+// ────────────────────────────────────────
+// 검색
+// ────────────────────────────────────────
+function doSearch(inputId, forceKeyword) {
+  const q = forceKeyword || (inputId ? $(inputId).value.trim() : "");
+  if (!q) { if (inputId) $(inputId).focus(); return; }
+
+  const ch = findChannel(q);
+  if (ch) {
+    openCh(ch);
+    if (inputId) { $(inputId).value = ""; $(inputId).blur(); }
   }
-  $(inputId).blur();
-  $(inputId).value = "";
 }
 
-// ══════════════════════════════════════════
-//  채널 열기
-// ══════════════════════════════════════════
-function openChannel(channel) {
-  curChannel = channel;
-  const pos = computePosition(channel);
-  curVideoIdx = pos.videoIdx;
+// ────────────────────────────────────────
+// 채널 열기 (핵심)
+// ────────────────────────────────────────
+function openCh(ch) {
+  cur = ch;
+  const pos = calcPos(ch);
+  curVidIdx = pos.idx;
 
   // 화면 전환
-  $("home").classList.add("hidden");
-  $("player").classList.remove("hidden");
-  $("errOverlay").classList.remove("show");
+  $("sHome").classList.add("off");
+  $("sPlayer").classList.remove("off");
+  $("errLayer").classList.remove("on");
 
-  loadVideo(curVideoIdx, pos.offset, pos);
-  renderEPG(channel);
-  startSyncLoop();
+  // 영상 로드
+  loadVid(curVidIdx, pos.offset);
+
+  // 사이드바 업데이트
+  updateInfoUI(pos);
+  renderEPG(ch);
+
+  // 사이드바 열기 (데스크탑)
+  $("sidebar").classList.add("open");
+  sidebarOpen = true;
+
+  // 루프 시작
+  startLoops(ch);
+
+  // 채팅 시작
+  startChat(ch);
 }
 
-// ══════════════════════════════════════════
-//  영상 로드 (핵심: iframe src 직접 교체)
-// ══════════════════════════════════════════
-function loadVideo(idx, offset, posOverride) {
-  if (!curChannel) return;
-  curVideoIdx = ((idx % curChannel.videos.length) + curChannel.videos.length) % curChannel.videos.length;
-  const vid = curChannel.videos[curVideoIdx];
-  const off = Math.floor(offset || 0);
+// ────────────────────────────────────────
+// 영상 로드
+// ────────────────────────────────────────
+function loadVid(idx, offset) {
+  if (!cur) return;
+  const n = cur.videos.length;
+  curVidIdx = ((idx % n) + n) % n;
+  const vid = cur.videos[curVidIdx];
+  const off = Math.max(0, Math.floor(offset || 0));
 
   const src = `https://www.youtube.com/embed/${vid.id}` +
-    `?autoplay=1&mute=${isMuted ? 1 : 0}&start=${off}` +
+    `?autoplay=1&mute=${muted?1:0}&start=${off}` +
     `&rel=0&modestbranding=1&playsinline=1`;
-  $("videoFrame").src = src;
 
-  // UI 업데이트
-  updateInfoUI(vid, posOverride);
+  $("vFrame").src = src;
+  $("errLayer").classList.remove("on");
+
+  // UI 즉시 갱신
+  const pos = calcPos(cur);
+  updateInfoUI(pos);
+  updateMuteUI();
 }
 
-function updateInfoUI(vid, pos) {
-  if (!curChannel) return;
-  if (!pos) pos = computePosition(curChannel);
-  const progress = ((pos.offset / vid.dur) * 100).toFixed(1);
-  const subText = `${fmtHHMM(pos.elapsed)} 방송 중 · ${fmtMMSS(pos.offset)} / ${fmtMMSS(vid.dur)}`;
+function updateInfoUI(pos) {
+  if (!cur || !pos) return;
+  const vid = cur.videos[curVidIdx] || pos.vid;
+  const pct = Math.min(100, ((pos.offset / Math.max(1,vid.dur)) * 100)).toFixed(1);
+  const subTxt = `${fmtHHMM(pos.elapsed)} 방송 · ${fmtMMSS(pos.offset)} 경과`;
 
   // 모바일
-  $("mobileKeyword").textContent = `#${curChannel.key}`;
-  $("mobileTitle").textContent = vid.title;
-  $("mobileSub").textContent = subText;
-  $("mobileProgress").style.width = progress + "%";
+  $("infoKw").textContent    = cur.key.toUpperCase();
+  $("infoTitle").textContent = vid.title;
+  $("infoSub").textContent   = subTxt;
+  $("infoProg").style.width  = pct + "%";
 
-  // 데스크탑 사이드바
-  $("sideKeyword").textContent = `#${curChannel.key}`;
+  // 사이드바
+  $("sideKw").textContent    = cur.key.toUpperCase();
   $("sideTitle").textContent = vid.title;
-  $("sideSub").textContent = subText;
-  $("sideProgress").style.width = progress + "%";
+  $("sideSub").textContent   = subTxt;
+  $("sideProg").style.width  = pct + "%";
 
-  $("muteBtn").textContent = isMuted ? "🔇" : "🔊";
-  $("muteBtn").classList.toggle("dim", isMuted);
+  // 싱크 표시
+  $("syncText").textContent  = `전 세계 동기화 · ${fmtHHMM(pos.elapsed)}`;
 }
 
-// ══════════════════════════════════════════
-//  EPG 렌더
-// ══════════════════════════════════════════
-function renderEPG(channel) {
-  const pos = computePosition(channel);
-  const html = buildEPGHTML(channel, pos);
-  $("mobileEPGList").innerHTML = html;
-  $("sideEPG").innerHTML = `<div class="epg-label">편성표</div>` + html;
+function updateMuteUI() {
+  const btn = $("muteBtn");
+  const ic  = $("muteIc");
+  ic.innerHTML = muted ? '<use href="#ic-mute"/>' : '<use href="#ic-vol"/>';
+  btn.classList.toggle("accent", muted);
+  btn.classList.toggle("active-btn", !muted);
+}
 
-  // 이벤트 달기
-  ["mobileEPGList","sideEPG"].forEach(id => {
+// ────────────────────────────────────────
+// EPG
+// ────────────────────────────────────────
+function renderEPG(ch) {
+  const pos = calcPos(ch);
+  const html = buildEPGHTML(ch, pos);
+  $("mobEpgList").innerHTML  = html;
+  $("sideEpgList").innerHTML = html;
+  ["mobEpgList","sideEpgList"].forEach(id => {
     document.querySelectorAll(`#${id} .epg-row`).forEach(row => {
       row.onclick = () => {
-        const i = parseInt(row.dataset.idx);
-        loadVideo(i, 0);
-        showToast(`▶ ${channel.videos[i].title}`);
+        const i = +row.dataset.i;
+        loadVid(i, 0);
+        toast(`${ch.videos[i].title}`);
       };
     });
   });
 }
 
-function buildEPGHTML(channel, pos) {
-  let html = "";
-  let acc = 0;
-  channel.videos.forEach((v, i) => {
-    const isCurrent = i === pos.videoIdx;
-    const progress = isCurrent ? ((pos.offset / v.dur) * 100).toFixed(0) : 0;
-    html += `
-      <div class="epg-row${isCurrent ? " now" : ""}" data-idx="${i}">
-        <div class="epg-time">${fmtHHMM(acc)}</div>
-        <div class="epg-info">
-          <div class="epg-title">${isCurrent ? "▶ " : ""}${v.title}</div>
-          <div class="epg-dur">${Math.floor(v.dur/60)}분</div>
-          ${isCurrent ? `<div class="progress-bar-wrap" style="margin-top:4px"><div class="progress-bar-fill" style="width:${progress}%"></div></div>` : ""}
-        </div>
-      </div>`;
+function buildEPGHTML(ch, pos) {
+  let acc = 0, html = "";
+  ch.videos.forEach((v, i) => {
+    const isCur = i === pos.idx;
+    const pct   = isCur ? ((pos.offset / Math.max(1,v.dur)) * 100).toFixed(0) : 0;
+    html += `<div class="epg-row${isCur?" now":""}" data-i="${i}">
+      <div class="epg-time">${fmtHHMM(acc)}</div>
+      <div class="epg-info">
+        <div class="epg-ttl">${isCur?"▶ ":""}${v.title}</div>
+        <div class="epg-dur">${Math.floor(v.dur/60)}분</div>
+        ${isCur?`<div class="epg-prog"><div class="epg-prog-fill" style="width:${pct}%"></div></div>`:""}
+      </div>
+    </div>`;
     acc += v.dur;
   });
   return html;
 }
 
-// ══════════════════════════════════════════
-//  싱크 루프 (30초마다 재동기화)
-// ══════════════════════════════════════════
-function startSyncLoop() {
-  syncTimers.forEach(clearInterval);
-  syncTimers = [];
+// ────────────────────────────────────────
+// 싱크 루프
+// ────────────────────────────────────────
+function startLoops(ch) {
+  loopTimers.forEach(clearInterval);
+  loopTimers = [];
 
-  // 1초마다 UI 업데이트
-  const uiTimer = setInterval(() => {
-    if (!curChannel) return;
-    const pos = computePosition(curChannel);
-    updateInfoUI(curChannel.videos[pos.videoIdx], pos);
-    updateSyncIndicator(pos);
-    updateClock();
+  const ui = setInterval(() => {
+    if (!cur) return;
+    const pos = calcPos(cur);
+    updateInfoUI(pos);
+    $("hdrClock").textContent = nowHHMM();
   }, 1000);
-  syncTimers.push(uiTimer);
+  loopTimers.push(ui);
 
-  // 30초마다 EPG 새로고침
-  const epgTimer = setInterval(() => {
-    if (curChannel) renderEPG(curChannel);
-  }, 30000);
-  syncTimers.push(epgTimer);
+  const epg = setInterval(() => { if (cur) renderEPG(cur); }, 30000);
+  loopTimers.push(epg);
 }
 
-function updateSyncIndicator(pos) {
-  const utcSec = Math.floor((Date.now() - STARTED_AT) / 1000);
-  $("syncText").textContent = `전 세계 동기화 · ${fmtHHMM(pos.elapsed)}`;
+// ────────────────────────────────────────
+// 실시간 채팅
+// ────────────────────────────────────────
+const CHAT_USERS = [
+  { name: "wave_k",    color: "#7c3aed" },
+  { name: "luna.tv",   color: "#0ea5e9" },
+  { name: "y_runner",  color: "#16a34a" },
+  { name: "melo0916",  color: "#db2777" },
+  { name: "note_fan",  color: "#d97706" },
+  { name: "starfield", color: "#ea580c" },
+  { name: "nxtlvl__",  color: "#8b5cf6" },
+  { name: "kpop.kr",   color: "#f59e0b" },
+];
+
+const CHAT_MSGS_KO = [
+  "이 노래 진짜 좋다", "방금 파트 소름...", "오늘도 여기 있네",
+  "전 세계 다 같이 보는 거 신기해", "같은 장면 보는 사람?",
+  "몇 번째 보는 건지 모르겠다", "이 화면 캡처해야지",
+  "이 채널 최고야", "Watching from Tokyo!", "Seoul here!",
+  "NYC gang", "런던에서 같이 보고 있어요", "이 노래 처음 들어봐요",
+  "짤 만들기 기능 써봐야지", "소리 키워서 들어야 해",
+  "진짜 TV같다", "이 앱 친구한테 공유해야겠다",
+];
+
+let chatIdx = 0;
+
+function startChat(ch) {
+  clearInterval(chatInterval);
+  // 초기 메시지 5개
+  const containers = ["mobChatMsgs","sideChatMsgs"];
+  containers.forEach(id => $(`${id}`).innerHTML = "");
+  for (let i = 0; i < 5; i++) addAutoMsg(ch);
+
+  chatInterval = setInterval(() => addAutoMsg(ch), 2800 + Math.random() * 2000);
 }
 
-function updateClock() {
-  const d = new Date();
-  $("clockDisplay").textContent =
-    `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+function addAutoMsg(ch) {
+  const user = CHAT_USERS[Math.floor(Math.random() * CHAT_USERS.length)];
+  const msg  = CHAT_MSGS_KO[chatIdx % CHAT_MSGS_KO.length];
+  chatIdx++;
+  const now  = nowHHMM();
+  appendChat(user.name, user.color, msg, now, false);
 }
 
-// ══════════════════════════════════════════
-//  컨트롤
-// ══════════════════════════════════════════
+function appendChat(username, color, text, time, isOwn) {
+  const html = `<div class="chat-msg${isOwn?" chat-own":""}">
+    <div class="chat-avatar" style="background:${color}22;color:${color}">
+      ${username[0].toUpperCase()}
+    </div>
+    <div class="chat-content">
+      <div class="chat-username" style="color:${color}">${username}</div>
+      <div class="chat-text">${escHtml(text)}</div>
+      <div class="chat-time">${time}</div>
+    </div>
+  </div>`;
+  ["mobChatMsgs","sideChatMsgs"].forEach(id => {
+    const el = $(id);
+    if (!el) return;
+    el.insertAdjacentHTML("beforeend", html);
+    el.scrollTop = el.scrollHeight;
+    // 최대 100개 유지
+    while (el.children.length > 100) el.removeChild(el.firstChild);
+  });
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+}
+
+function sendChat(prefix) {
+  const inputId = prefix + "ChatIn";
+  const inp = $(inputId);
+  const text = inp.value.trim();
+  if (!text) return;
+  inp.value = "";
+  appendChat("나", "#ff3356", text, nowHHMM(), true);
+}
+
+// ────────────────────────────────────────
+// 캡처 / 짤 기능
+// ────────────────────────────────────────
+let captureThumbUrl = "";
+
+function openCapture() {
+  if (!cur) { toast("먼저 채널을 시작하세요"); return; }
+  $("memeTop").value = "";
+  $("memeBot").value = "";
+  $("captureModal").classList.add("on");
+  const vid = cur.videos[curVidIdx];
+  captureThumbUrl = `https://img.youtube.com/vi/${vid.id}/maxresdefault.jpg`;
+  renderCanvas();
+}
+
+function closeCapture() {
+  $("captureModal").classList.remove("on");
+}
+
+function renderCanvas() {
+  if (!cur) return;
+  const canvas = $("captureCanvas");
+  const W = 1280, H = 720;
+  canvas.width = W; canvas.height = H;
+  const ctx = canvas.getContext("2d");
+
+  const topText = $("memeTop").value.trim();
+  const botText = $("memeBot").value.trim();
+  const vid = cur.videos[curVidIdx];
+
+  // 배경 그라데이션
+  const grad = ctx.createLinearGradient(0, 0, 0, H);
+  grad.addColorStop(0, "#08080d");
+  grad.addColorStop(1, "#151520");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, W, H);
+
+  // 썸네일 로드 후 그리기
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.onload = () => {
+    // 썸네일 중앙에 16:9로
+    const thumbH = H * 0.65;
+    const thumbW = thumbH * (16/9);
+    const thumbX = (W - thumbW) / 2;
+    const thumbY = (H - thumbH) / 2 - 20;
+
+    // 썸네일 그림자
+    ctx.shadowColor = "rgba(0,0,0,0.6)";
+    ctx.shadowBlur = 40;
+    ctx.drawImage(img, thumbX, thumbY, thumbW, thumbH);
+    ctx.shadowBlur = 0;
+
+    drawOverlay(ctx, W, H, topText, botText, vid);
+  };
+  img.onerror = () => {
+    // 썸네일 없을 때 placeholder
+    ctx.fillStyle = cur.color || "#ff3356";
+    ctx.globalAlpha = 0.15;
+    ctx.fillRect(80, 60, W-160, H-200);
+    ctx.globalAlpha = 1;
+    drawOverlay(ctx, W, H, topText, botText, vid);
+  };
+
+  // 즉시 오버레이 먼저 그리기 (이미지 로딩 전)
+  drawOverlay(ctx, W, H, topText, botText, vid);
+  img.src = captureThumbUrl;
+}
+
+function drawOverlay(ctx, W, H, topText, botText, vid) {
+  const accent = cur.color || "#ff3356";
+
+  // 상단 텍스트 (밈 스타일)
+  if (topText) {
+    ctx.font = "bold 60px -apple-system,Arial,sans-serif";
+    ctx.textAlign = "center";
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 8;
+    ctx.lineJoin = "round";
+    ctx.strokeText(topText, W/2, 80);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(topText, W/2, 80);
+  }
+
+  // 하단 텍스트 (밈 스타일)
+  if (botText) {
+    ctx.font = "bold 60px -apple-system,Arial,sans-serif";
+    ctx.textAlign = "center";
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 8;
+    ctx.lineJoin = "round";
+    ctx.strokeText(botText, W/2, H - 110);
+    ctx.fillStyle = "#ffffff";
+    ctx.fillText(botText, W/2, H - 110);
+  }
+
+  // 하단 정보 바
+  const barH = 80;
+  const barGrad = ctx.createLinearGradient(0, H-barH, 0, H);
+  barGrad.addColorStop(0, "rgba(0,0,0,0)");
+  barGrad.addColorStop(1, "rgba(8,8,13,0.95)");
+  ctx.fillStyle = barGrad;
+  ctx.fillRect(0, H-barH, W, barH);
+
+  // TUNE 브랜드
+  ctx.font = "bold 28px -apple-system,Arial,sans-serif";
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#ffffff";
+  ctx.fillText("TUNE", 30, H - 28);
+
+  // 채널 키워드
+  ctx.font = "bold 18px -apple-system,Arial,sans-serif";
+  ctx.fillStyle = accent;
+  ctx.fillText("#" + cur.key.toUpperCase(), 110, H - 28);
+
+  // 영상 제목
+  const maxTitleW = W - 350;
+  ctx.font = "500 16px -apple-system,Arial,sans-serif";
+  ctx.fillStyle = "rgba(255,255,255,0.7)";
+  let title = vid.title;
+  while (ctx.measureText(title).width > maxTitleW && title.length > 10) title = title.slice(0,-1);
+  if (title !== vid.title) title += "...";
+  ctx.fillText(title, 110, H - 10);
+
+  // 타임스탬프
+  ctx.font = "600 14px -apple-system,Arial,sans-serif";
+  ctx.textAlign = "right";
+  ctx.fillStyle = "rgba(255,255,255,0.4)";
+  ctx.fillText(nowHHMM() + " KST", W - 24, H - 20);
+}
+
+function downloadCapture() {
+  renderCanvas(); // 최신 상태 한 번 더 렌더
+  setTimeout(() => {
+    const canvas = $("captureCanvas");
+    const a = document.createElement("a");
+    a.download = `TUNE_${cur?.key||"capture"}_${Date.now()}.png`;
+    a.href = canvas.toDataURL("image/png");
+    a.click();
+    toast("PNG 다운로드 완료");
+    closeCapture();
+  }, 600); // 이미지 로드 대기
+}
+
+// ────────────────────────────────────────
+// 컨트롤
+// ────────────────────────────────────────
 function goHome() {
-  syncTimers.forEach(clearInterval); syncTimers = [];
-  $("videoFrame").src = "";
-  $("player").classList.add("hidden");
-  $("home").classList.remove("hidden");
+  loopTimers.forEach(clearInterval); loopTimers = [];
+  clearInterval(chatInterval);
+  $("vFrame").src = "";
+  $("sPlayer").classList.add("off");
+  $("sHome").classList.remove("off");
   renderHome();
 }
 
-function nextVideo() {
-  if (!curChannel) return;
-  loadVideo(curVideoIdx + 1, 0);
-  showToast("▶ 다음 영상");
+function nextVid() {
+  if (!cur) return;
+  loadVid(curVidIdx + 1, 0);
+  toast("다음 영상");
 }
-function prevVideo() {
-  if (!curChannel) return;
-  loadVideo(curVideoIdx - 1, 0);
-  showToast("◀ 이전 영상");
+function prevVid() {
+  if (!cur) return;
+  loadVid(curVidIdx - 1, 0);
+  toast("이전 영상");
 }
 function nextCh() {
-  const i = CHANNELS.findIndex(c => c.key === curChannel?.key);
-  openChannel(CHANNELS[(i + 1) % CHANNELS.length]);
-  showToast(`⏭ ${CHANNELS[(i + 1) % CHANNELS.length].label}`);
+  const i = CURATED.findIndex(c => c.key === cur?.key);
+  openCh(CURATED[(i + 1) % CURATED.length]);
 }
 function prevCh() {
-  const i = CHANNELS.findIndex(c => c.key === curChannel?.key);
-  openChannel(CHANNELS[(i - 1 + CHANNELS.length) % CHANNELS.length]);
-  showToast(`⏮ ${CHANNELS[(i - 1 + CHANNELS.length) % CHANNELS.length].label}`);
+  const i = CURATED.findIndex(c => c.key === cur?.key);
+  openCh(CURATED[(i - 1 + CURATED.length) % CURATED.length]);
 }
 function toggleMute() {
-  isMuted = !isMuted;
-  if (curChannel) loadVideo(curVideoIdx, 0);
-  showToast(isMuted ? "🔇 음소거" : "🔊 소리 켜짐");
+  muted = !muted;
+  if (cur) loadVid(curVidIdx, 0);
+  updateMuteUI();
+  toast(muted ? "음소거" : "소리 켜짐");
+}
+function toggleSidebar() {
+  sidebarOpen = !sidebarOpen;
+  $("sidebar").classList.toggle("open", sidebarOpen);
 }
 
-// ══════════════════════════════════════════
-//  키보드 단축키
-// ══════════════════════════════════════════
+// ────────────────────────────────────────
+// 탭 전환
+// ────────────────────────────────────────
+function sideTab(tab, btn) {
+  document.querySelectorAll(".stab").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  $("sideEpgPane").classList.toggle("active",  tab === "epg");
+  $("sideChatPane").classList.toggle("active", tab === "chat");
+}
+function mobTab(tab, btn) {
+  document.querySelectorAll("#sPlayer .mob-only .stab").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  $("mobEpgPane").classList.toggle("active",  tab === "epg");
+  $("mobChatPane").classList.toggle("active", tab === "chat");
+}
+
+// ────────────────────────────────────────
+// 키보드
+// ────────────────────────────────────────
 document.addEventListener("keydown", e => {
-  if (e.key === "ArrowRight") nextVideo();
-  if (e.key === "ArrowLeft")  prevVideo();
+  if (["homeQ","playerQ","mobChatIn","sideChatIn","memeTop","memeBot"]
+      .includes(document.activeElement?.id)) return;
+  if (e.key === "ArrowRight") nextVid();
+  if (e.key === "ArrowLeft")  prevVid();
   if (e.key === "ArrowUp")    nextCh();
   if (e.key === "ArrowDown")  prevCh();
-  if (e.key === "m" || e.key === "M") toggleMute();
-  if (e.key === "Escape") goHome();
+  if (e.key.toLowerCase() === "m") toggleMute();
+  if (e.key === "Escape") { closeCapture(); goHome(); }
 });
 
-["homeSearch","desktopSearch"].forEach(id => {
+// Enter 키 검색
+["homeQ","playerQ"].forEach(id => {
   const el = $(id);
   if (el) el.addEventListener("keydown", e => { if (e.key === "Enter") doSearch(id); });
 });
+["mobChatIn","sideChatIn"].forEach(id => {
+  const el = $(id);
+  if (el) el.addEventListener("keydown", e => {
+    if (e.key === "Enter") sendChat(id === "mobChatIn" ? "mob" : "side");
+  });
+});
 
-// 시작
+// ────────────────────────────────────────
+// 시계
+// ────────────────────────────────────────
+function tickClock() { $("hdrClock").textContent = nowHHMM(); }
+tickClock();
+setInterval(tickClock, 1000);
+
+// ────────────────────────────────────────
+// 초기화
+// ────────────────────────────────────────
 renderHome();
-updateClock();
-setInterval(updateClock, 1000);
 </script>
 </body>
 </html>
